@@ -1,0 +1,180 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidUserSettings(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.dailyNewLimit is int && data.dailyNewLimit >= 0 && data.dailyNewLimit <= 500 &&
+             data.dailyNewDate is string && data.dailyNewDate.size() <= 20 &&
+             data.dailyNewCount is int && data.dailyNewCount >= 0 && data.dailyNewCount <= 10000 &&
+             data.dailyNewExtraBonus is int && data.dailyNewExtraBonus >= 0 && data.dailyNewExtraBonus <= 10000 &&
+             data.reviewsSinceLastBackup is int && data.reviewsSinceLastBackup >= 0 && data.reviewsSinceLastBackup <= 1000000 &&
+             data.reminderEnabled is bool &&
+             data.reminderTime is string && data.reminderTime.size() >= 4 && data.reminderTime.size() <= 10 &&
+             data.darkThemeMode is string && data.darkThemeMode in ['system', 'light', 'dark'] &&
+             data.seededInitialCards is bool;
+    }
+
+    function isValidFlashcard(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.front is string && data.front.size() >= 1 && data.front.size() <= 2000 &&
+             data.back is string && data.back.size() >= 1 && data.back.size() <= 4000 &&
+             data.chapter is string && data.chapter.size() >= 1 && data.chapter.size() <= 120 &&
+             data.lesson is string && data.lesson.size() >= 1 && data.lesson.size() <= 120 &&
+             data.box is int && data.box >= 1 && data.box <= 5 &&
+             data.newCard is bool &&
+             data.lapses is int && data.lapses >= 0 && data.lapses <= 10000 &&
+             data.starred is bool &&
+             data.nextReviewMillis is int && data.nextReviewMillis >= 0;
+    }
+
+    function isValidMonthlyReport(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.monthKey is string && data.monthKey.size() >= 1 && data.monthKey.size() <= 60 &&
+             data.monthLabel is string && data.monthLabel.size() >= 1 && data.monthLabel.size() <= 80 &&
+             data.savedDate is string && data.savedDate.size() >= 1 && data.savedDate.size() <= 20 &&
+             data.overallMastery is int && data.overallMastery >= 0 && data.overallMastery <= 100 &&
+             data.totalCards is int && data.totalCards >= 0 && data.totalCards <= 100000 &&
+             data.chapters is list && data.chapters.size() <= 100 &&
+             (data.chapters.size() == 0 || data.chapters[0] is map);
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'dailyNewLimit', 'dailyNewDate', 'dailyNewCount',
+                         'dailyNewExtraBonus', 'reviewsSinceLastBackup', 'reminderEnabled',
+                         'reminderTime', 'darkThemeMode', 'seededInitialCards', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'dailyNewLimit', 'dailyNewDate', 'dailyNewCount',
+                         'dailyNewExtraBonus', 'reviewsSinceLastBackup', 'reminderEnabled',
+                         'reminderTime', 'darkThemeMode', 'seededInitialCards', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidUserSettings(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidUserSettings(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'dailyNewLimit', 'dailyNewDate', 'dailyNewCount', 'dailyNewExtraBonus',
+                         'reviewsSinceLastBackup', 'reminderEnabled', 'reminderTime',
+                         'darkThemeMode', 'seededInitialCards', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+
+      match /flashcards/{cardId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(cardId);
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(cardId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'front', 'back', 'chapter', 'lesson',
+                           'box', 'newCard', 'lapses', 'starred', 'nextReviewMillis',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'front', 'back', 'chapter', 'lesson',
+                           'box', 'newCard', 'lapses', 'starred', 'nextReviewMillis',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         isValidFlashcard(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(cardId) &&
+                         isValidFlashcard(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         (
+                           // Action: Review card progression
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'box', 'newCard', 'lapses', 'starred', 'nextReviewMillis', 'updatedAt'
+                           ]) ||
+                           // Action: Toggle star
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'starred', 'updatedAt'
+                           ]) ||
+                           // Action: Edit card content & hierarchy
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'front', 'back', 'chapter', 'lesson', 'updatedAt'
+                           ]) ||
+                           // Action: Full update
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'front', 'back', 'chapter', 'lesson',
+                             'box', 'newCard', 'lapses', 'starred', 'nextReviewMillis', 'updatedAt'
+                           ])
+                         );
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(cardId);
+      }
+
+      match /monthlyReports/{reportId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(reportId);
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(reportId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'monthKey', 'monthLabel', 'savedDate',
+                           'overallMastery', 'totalCards', 'chapters', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'monthKey', 'monthLabel', 'savedDate',
+                           'overallMastery', 'totalCards', 'chapters', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         isValidMonthlyReport(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(reportId) &&
+                         isValidMonthlyReport(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'monthKey', 'monthLabel', 'savedDate',
+                           'overallMastery', 'totalCards', 'chapters', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(reportId);
+      }
+    }
+  }
+}

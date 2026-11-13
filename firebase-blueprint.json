@@ -1,0 +1,217 @@
+{
+  "entities": {
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "User preferences, daily new card quota tracking, and reminder settings for Leitner Minimal.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID owning this profile document."
+        },
+        "dailyNewLimit": {
+          "type": "integer",
+          "description": "Maximum number of new cards per day (0 means unlimited)."
+        },
+        "dailyNewDate": {
+          "type": "string",
+          "description": "Date string YYYY-MM-DD for the daily new card counter."
+        },
+        "dailyNewCount": {
+          "type": "integer",
+          "description": "Number of new cards reviewed on dailyNewDate."
+        },
+        "dailyNewExtraBonus": {
+          "type": "integer",
+          "description": "Extra unlocked new card allowance for dailyNewDate."
+        },
+        "reviewsSinceLastBackup": {
+          "type": "integer",
+          "description": "Review counter since the last JSON backup export."
+        },
+        "reminderEnabled": {
+          "type": "boolean",
+          "description": "Whether daily review reminder notifications are enabled."
+        },
+        "reminderTime": {
+          "type": "string",
+          "description": "Daily reminder time in HH:mm format."
+        },
+        "darkThemeMode": {
+          "type": "string",
+          "enum": ["system", "light", "dark"],
+          "description": "User-selected theme mode."
+        },
+        "seededInitialCards": {
+          "type": "boolean",
+          "description": "Whether initial starter flashcards have been seeded."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp written with FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp written with FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "dailyNewLimit",
+        "dailyNewDate",
+        "dailyNewCount",
+        "dailyNewExtraBonus",
+        "reviewsSinceLastBackup",
+        "reminderEnabled",
+        "reminderTime",
+        "darkThemeMode",
+        "seededInitialCards",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "A Leitner spaced-repetition flashcard organized by chapter and lesson.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID owning this flashcard."
+        },
+        "front": {
+          "type": "string",
+          "description": "Question or front prompt text of the flashcard."
+        },
+        "back": {
+          "type": "string",
+          "description": "Answer or explanation text of the flashcard."
+        },
+        "chapter": {
+          "type": "string",
+          "description": "Logical category or chapter name."
+        },
+        "lesson": {
+          "type": "string",
+          "description": "Subcategory or lesson name inside the chapter."
+        },
+        "box": {
+          "type": "integer",
+          "description": "Leitner box number from 1 to 5."
+        },
+        "newCard": {
+          "type": "boolean",
+          "description": "Whether this card has not been reviewed yet."
+        },
+        "lapses": {
+          "type": "integer",
+          "description": "Count of times this card was answered unknown and returned to Box 1."
+        },
+        "starred": {
+          "type": "boolean",
+          "description": "Whether this card is marked as challenging/starred."
+        },
+        "nextReviewMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds timestamp when this card is next due for review."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp written with FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp written with FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "front",
+        "back",
+        "chapter",
+        "lesson",
+        "box",
+        "newCard",
+        "lapses",
+        "starred",
+        "nextReviewMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MonthlyReport": {
+      "title": "MonthlyReport",
+      "description": "Monthly mastery progress snapshot by chapter for longitudinal comparison.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID owning this report."
+        },
+        "monthKey": {
+          "type": "string",
+          "description": "Unique key identifying the month."
+        },
+        "monthLabel": {
+          "type": "string",
+          "description": "Localized Persian calendar month and year label."
+        },
+        "savedDate": {
+          "type": "string",
+          "description": "Date string YYYY-MM-DD when the snapshot was saved."
+        },
+        "overallMastery": {
+          "type": "integer",
+          "description": "Overall mastery percentage 0..100."
+        },
+        "totalCards": {
+          "type": "integer",
+          "description": "Total cards at snapshot time."
+        },
+        "chapters": {
+          "type": "array",
+          "description": "Per-chapter mastery breakdown list."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp written with FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp written with FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "monthKey",
+        "monthLabel",
+        "savedDate",
+        "overallMastery",
+        "totalCards",
+        "chapters",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserSettings" },
+      "description": "User settings and daily quota state."
+    },
+    "/users/{userId}/flashcards/{cardId}": {
+      "schema": { "$ref": "#/entities/Flashcard" },
+      "description": "User-owned Leitner flashcards."
+    },
+    "/users/{userId}/monthlyReports/{reportId}": {
+      "schema": { "$ref": "#/entities/MonthlyReport" },
+      "description": "User-owned monthly mastery snapshots."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "لایتنر مینیمال",
+  "description": "اپلیکیشن هوشمند مرور فلش‌کارت با سیستم ۵ خانه لایتنر، فصل‌بندی دروس، تلفظ صوتی و کارنامه پیشرفت",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
