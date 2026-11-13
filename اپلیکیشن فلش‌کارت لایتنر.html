@@ -1,0 +1,3139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>لایتنر مینیمال | مرور هوشمند فلش‌کارت</title>
+
+  <!-- بارگذاری Tailwind CSS (همراه با استایل‌های پشتیبان داخلی برای اجرای کامل در حالت کاملاً آفلاین) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Vazirmatn', 'IRANSans', 'Tahoma', 'system-ui', '-apple-system', 'sans-serif'],
+            }
+          },
+        },
+      };
+    }
+  </script>
+
+  <!-- فونت فارسی وزیرمتن (در صورت دسترسی به اینترنت) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- استایل‌های اختصاصی، انیمیشن کارت سه‌بعدی و پشتیبان آفلاین -->
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: rgba(226, 232, 240, 0.85);
+      --brand: #4f46e5;
+    }
+
+    html.dark {
+      --bg-page: #020617;
+      --bg-card: #0f172a;
+      --bg-subtle: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #1e293b;
+      --brand: #6366f1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Vazirmatn', 'Tahoma', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* کانتینر سه‌بعدی و ژست حرکتی برای چرخش و کشیدن کارت */
+    .flip-scene {
+      perspective: 1200px;
+      touch-action: pan-y;
+      user-select: none;
+    }
+
+    .swipe-wrapper {
+      position: relative;
+      width: 100%;
+      will-change: transform;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    }
+
+    .swipe-wrapper.is-dragging {
+      transition: none;
+    }
+
+    .flip-card {
+      position: relative;
+      width: 100%;
+      min-height: 300px;
+      transform-style: preserve-3d;
+      transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+      .flip-card {
+        min-height: 340px;
+      }
+    }
+
+    .flip-card.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .flip-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: var(--bg-card);
+      border-radius: 1.5rem;
+    }
+
+    .flip-face-back {
+      transform: rotateY(180deg);
+    }
+
+    /* نشانگرهای کشیدن به چپ و راست (Swipe Badges) */
+    .swipe-badge {
+      position: absolute;
+      top: 1.25rem;
+      z-index: 30;
+      padding: 0.45rem 0.9rem;
+      border-radius: 0.85rem;
+      font-weight: 800;
+      font-size: 0.85rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s linear;
+    }
+
+    .swipe-badge-know {
+      right: 1.25rem;
+      background-color: rgba(16, 185, 129, 0.92);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25);
+    }
+
+    .swipe-badge-dont {
+      left: 1.25rem;
+      background-color: rgba(244, 63, 94, 0.92);
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.25);
+    }
+
+    /* انیمیشن پخش صوت */
+    @keyframes ttsPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+    .tts-speaking {
+      animation: ttsPulse 0.8s infinite ease-in-out;
+      color: #4f46e5 !important;
+      background-color: rgba(99, 102, 241, 0.14) !important;
+    }
+
+    /* اسکرول‌بار ظریف */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.55);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-300 selection:bg-indigo-500 selection:text-white">
+
+  <!-- کانتینر اصلی اپلیکیشن -->
+  <div class="max-w-xl mx-auto px-4 py-5 sm:py-8 flex flex-col min-h-screen">
+
+    <!-- هدر مینیمال -->
+    <header class="flex items-center justify-between mb-5 sm:mb-7">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shadow-indigo-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="4" y="6" width="16" height="14" rx="3" />
+            <path d="M8 3h8" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">لایتنر مینیمال</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">مرور هوشمند با تکرار فاصله‌دار</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- دکمه تغییر حالت روشن / تاریک -->
+        <button id="themeToggleBtn" type="button" aria-label="تغییر پوسته" title="تغییر حالت روشن و تاریک"
+          class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95">
+          <svg id="sunIcon" class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" stroke-linecap="round" />
+          </svg>
+          <svg id="moonIcon" class="w-5 h-5 block dark:hidden text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <!-- دکمه تنظیمات و نوتیفیکیشن -->
+        <button id="openSettingsBtn" type="button" aria-label="تنظیمات" title="تنظیمات و یادآور"
+          class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95 relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span id="reminderActiveDot" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- بنر غیرمزاحم یادآور پشتیبان‌گیری دوره‌ای (هر ۵۰ مرور) -->
+    <div id="backupReminderBanner" class="hidden mb-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/90 dark:border-amber-800/70 p-3.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/70 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <p class="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+          بیش از ۵۰ مرور انجام دادید! برای امنیت داده‌ها فایل پشتیبان بگیرید.
+        </p>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="bannerSnoozeBackupBtn" type="button" class="px-2.5 py-1.5 rounded-xl text-[11px] font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition">
+          بعداً
+        </button>
+        <button id="bannerDownloadBackupBtn" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition">
+          دانلود
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== نمای اول: داشبورد اصلی ==================== -->
+    <main id="dashboardView" class="flex-1 flex flex-col gap-4 sm:gap-5">
+
+      <!-- کارت اصلی وضعیت مرور امروز -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 sm:p-7 shadow-sm transition-colors">
+        <div class="flex items-center justify-between mb-3.5">
+          <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            برنامه امروز
+          </span>
+          <span id="totalCardsBadge" class="text-xs text-slate-400 dark:text-slate-500">کل کارت‌ها: ۰</span>
+        </div>
+
+        <!-- انتخابگر فصل و درس برای مرور هدفمند -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div>
+            <label for="dashboardChapterSelect" class="sr-only">انتخاب فصل</label>
+            <select id="dashboardChapterSelect"
+              class="w-full rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 truncate">
+              <option value="all">همه فصل‌ها</option>
+            </select>
+          </div>
+          <div>
+            <label for="dashboardLessonSelect" class="sr-only">انتخاب درس</label>
+            <select id="dashboardLessonSelect"
+              class="w-full rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 truncate">
+              <option value="all">همه درس‌ها</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- نمایش تعداد کارت‌های آماده امروز + تفکیک مروری و جدید -->
+        <div class="my-3 text-center py-2">
+          <div id="dueCountDisplay" class="text-5xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1.5">۰</div>
+          <p id="dueSubtitle" class="text-sm text-slate-500 dark:text-slate-400 font-medium">کارت‌های آماده مرور امروز</p>
+
+          <!-- تفکیک کارت‌های مروری و جدید مجاز امروز -->
+          <div id="dailyBreakdownRow" class="mt-2.5 flex flex-wrap items-center justify-center gap-2 text-[11px]">
+            <span id="dueReviewBreakdown" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">مروری: ۰</span>
+            <span id="dueNewBreakdown" class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">جدید امروز: ۰</span>
+            <button id="unlockMoreNewBtn" type="button"
+              class="hidden px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold transition active:scale-95">
+              + ۱۰ کارت جدید بیشتر
+            </button>
+          </div>
+        </div>
+
+        <!-- دکمه بارگذاری کارت‌های نمونه (فقط زمانی که برنامه کاملاً خالی است) -->
+        <div id="emptySampleBox" class="hidden mt-4">
+          <button id="loadSampleCardsBtn" type="button"
+            class="w-full py-3 px-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>بارگذاری کارت‌های نمونه برای تست سریع</span>
+          </button>
+        </div>
+
+        <!-- دکمه‌های شروع مرور عادی، دوره شب امتحان و کارت‌های ستاره‌دار -->
+        <div class="mt-5 flex flex-col gap-2.5">
+          <button id="startReviewBtn" type="button"
+            class="w-full py-3.5 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500 text-white font-semibold text-base shadow-sm shadow-indigo-500/20 transition flex items-center justify-center gap-2 active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <polygon points="5 3 19 12 5 21 5 3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span id="startReviewBtnText">شروع مرور</span>
+          </button>
+
+          <!-- ردیف حالت‌های ویژه: دوره شب امتحان و مرور ستاره‌دارها -->
+          <div id="specialModesRow" class="hidden grid grid-cols-2 gap-2">
+            <button id="cramModeBtn" type="button"
+              class="py-2.5 px-3 rounded-xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50 text-xs font-semibold transition flex items-center justify-center gap-1.5 active:scale-[0.98]">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span>دوره شب امتحان</span>
+            </button>
+
+            <button id="starredReviewBtn" type="button"
+              class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center justify-center gap-1.5 active:scale-[0.98]">
+              <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span id="starredReviewBtnText">ستاره‌دارها (۰)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- نوار وضعیت ۵ خانه لایتنر -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-3.5">
+          <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200">وضعیت خانه‌های لایتنر</h2>
+          <span class="text-[11px] text-slate-400 dark:text-slate-500">فواصل تکرار هوشمند</span>
+        </div>
+
+        <div id="boxesContainer" class="grid grid-cols-5 gap-2">
+          <!-- خانه‌های ۱ تا ۵ به صورت پویا توسط جاوااسکریپت رندر می‌شوند -->
+        </div>
+      </section>
+
+      <!-- کارت خلاصه درصد یادگیری فصل‌ها و گزارش پایان ماه -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200">کارنامه و درصد یادگیری فصل‌ها</h2>
+            <p id="dashboardChaptersSummary" class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">۰ فصل • تسلط کل: ۰٪</p>
+          </div>
+          <button id="openReportsModalBtn" type="button"
+            class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition shrink-0 active:scale-95">
+            مشاهده کارنامه
+          </button>
+        </div>
+
+        <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div id="overallMasteryBar" class="h-full bg-emerald-500 transition-all duration-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </section>
+
+      <!-- دکمه‌های دسترسی سریع -->
+      <section class="grid grid-cols-2 gap-3">
+        <!-- ورود فایل JSON / CSV -->
+        <button id="importFileTriggerBtn" type="button"
+          class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition flex flex-col items-start gap-2.5 text-right group active:scale-[0.99]">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">ورود فایل درس</div>
+            <div class="text-[11px] text-slate-400 dark:text-slate-500">تقسیم‌بندی فصل و درس</div>
+          </div>
+        </button>
+        <input id="fileInput" type="file" accept=".json,.csv,application/json,text/csv" class="hidden" />
+
+        <!-- افزودن کارت دستی -->
+        <button id="openAddModalBtn" type="button"
+          class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition flex flex-col items-start gap-2.5 text-right group active:scale-[0.99]">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">افزودن کارت</div>
+            <div class="text-[11px] text-slate-400 dark:text-slate-500">ساخت کارت جدید</div>
+          </div>
+        </button>
+
+        <!-- لیست کارت‌ها -->
+        <button id="openListModalBtn" type="button"
+          class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition flex flex-col items-start gap-2.5 text-right group active:scale-[0.99]">
+          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">لیست کارت‌ها</div>
+            <div class="text-[11px] text-slate-400 dark:text-slate-500">جستجو و مدیریت</div>
+          </div>
+        </button>
+
+        <!-- تنظیمات و نوتیفیکیشن -->
+        <button id="openSettingsCardBtn" type="button"
+          class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition flex flex-col items-start gap-2.5 text-right group active:scale-[0.99]">
+          <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">تنظیمات و یادآور</div>
+            <div class="text-[11px] text-slate-400 dark:text-slate-500">سقف روزانه، نوتیف و بکاپ</div>
+          </div>
+        </button>
+      </section>
+    </main>
+
+    <!-- ==================== نمای دوم: صفحه مرور فلش‌کارت ==================== -->
+    <section id="reviewView" class="hidden flex-1 flex flex-col justify-between gap-4">
+      <!-- نوار بالای مرور -->
+      <div>
+        <div class="flex items-center justify-between mb-3 gap-2">
+          <button id="exitReviewBtn" type="button"
+            class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>بازگشت</span>
+          </button>
+
+          <div class="flex items-center gap-1.5 overflow-x-auto">
+            <span id="cramModeBannerBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 whitespace-nowrap">
+              ⚡ حالت دوره شب امتحان
+            </span>
+            <span id="starredModeBannerBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 whitespace-nowrap">
+              ⭐ کارت‌های چالش‌برانگیز
+            </span>
+            <span id="reviewProgressText" class="text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-3 py-1.5 rounded-xl shrink-0">۱ از ۱</span>
+          </div>
+        </div>
+
+        <!-- نوار پیشرفت خطی -->
+        <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div id="reviewProgressBar" class="h-full bg-indigo-600 transition-all duration-300 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- کارت سه‌بعدی تعاملی با ژست حرکتی (Swipe) -->
+      <div id="flashcardContainer" class="flip-scene my-auto py-2">
+        <div id="swipeWrapper" class="swipe-wrapper">
+          <!-- برچسب‌های کشیدن لمسی به چپ و راست -->
+          <div id="swipeKnowBadge" class="swipe-badge swipe-badge-know">بلدم ✓</div>
+          <div id="swipeDontBadge" class="swipe-badge swipe-badge-dont">بلد نیستم ✕</div>
+
+          <div id="flipCardInner" class="flip-card">
+            <!-- روی کارت (سوال) -->
+            <div class="flip-face rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-md">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span id="cardBoxBadgeFront" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 shrink-0">خانه ۱</span>
+                  <span id="cardTagBadgeFront" class="text-[11px] text-slate-400 dark:text-slate-500 truncate">عمومی</span>
+                </div>
+
+                <!-- دکمه‌های ابزار سریع کارت: تلفظ صوتی، ستاره‌دار و ویرایش -->
+                <div class="flex items-center gap-1 shrink-0">
+                  <button type="button" id="ttsFrontBtn" title="تلفظ صوتی" aria-label="تلفظ صوتی روی کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <button type="button" id="starFrontBtn" title="نشانه‌گذاری چالش‌برانگیز" aria-label="ستاره‌دار کردن کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4 star-icon-svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <button type="button" id="editFrontBtn" title="ویرایش سریع کارت" aria-label="ویرایش کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="my-auto py-5 overflow-y-auto max-h-[220px] flex items-center justify-center px-2">
+                <p id="cardFrontText" dir="rtl" class="text-xl sm:text-2xl font-bold text-center text-slate-900 dark:text-white leading-relaxed whitespace-pre-line w-full"></p>
+              </div>
+
+              <div class="text-center">
+                <span class="inline-flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  لمس برای پاسخ • کشیدن به چپ یا راست برای ارزیابی
+                </span>
+              </div>
+            </div>
+
+            <!-- پشت کارت (پاسخ) -->
+            <div class="flip-face flip-face-back rounded-3xl bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 p-5 sm:p-7 shadow-md">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 shrink-0">پاسخ</span>
+                  <span id="cardTagBadgeBack" class="text-[11px] text-slate-400 dark:text-slate-500 truncate">عمومی</span>
+                </div>
+
+                <!-- دکمه‌های ابزار سریع پشت کارت -->
+                <div class="flex items-center gap-1 shrink-0">
+                  <button type="button" id="ttsBackBtn" title="تلفظ صوتی" aria-label="تلفظ صوتی پشت کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <button type="button" id="starBackBtn" title="نشانه‌گذاری چالش‌برانگیز" aria-label="ستاره‌دار کردن کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4 star-icon-svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <button type="button" id="editBackBtn" title="ویرایش سریع کارت" aria-label="ویرایش کارت"
+                    class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="my-auto py-5 overflow-y-auto max-h-[220px] flex items-center justify-center px-2">
+                <p id="cardBackText" dir="rtl" class="text-lg sm:text-xl font-medium text-center text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-line w-full"></p>
+              </div>
+
+              <div class="text-center">
+                <span id="nextIntervalHint" class="text-[11px] text-slate-400 dark:text-slate-500">میزان تسلط خود را انتخاب کنید</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- دکمه‌های ارزیابی پایین کارت -->
+      <div class="min-h-[76px] flex items-center">
+        <!-- دکمه نمایش پاسخ (قبل از چرخش) -->
+        <button id="revealAnswerBtn" type="button"
+          class="w-full py-4 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-base transition active:scale-[0.99]">
+          نمایش پاسخ
+        </button>
+
+        <!-- دکمه‌های بلدم / بلد نیستم (بعد از چرخش) -->
+        <div id="answerActionsRow" class="hidden w-full grid grid-cols-2 gap-3">
+          <button id="dontKnowBtn" type="button"
+            class="py-3.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70 font-bold text-base transition flex flex-col items-center justify-center gap-0.5 active:scale-[0.98]">
+            <span id="dontKnowMainText">بلد نیستم</span>
+            <span id="dontKnowSubtext" class="text-[11px] font-normal opacity-80">بازگشت به خانه ۱</span>
+          </button>
+
+          <button id="knowItBtn" type="button"
+            class="py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-sm shadow-emerald-600/20 transition flex flex-col items-center justify-center gap-0.5 active:scale-[0.98]">
+            <span id="knowItMainText">بلدم</span>
+            <span id="knowItSubtext" class="text-[11px] font-normal opacity-90">انتقال به خانه ۲</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== نمای سوم: صفحه پایان مرور ==================== -->
+    <section id="completeView" class="hidden flex-1 flex flex-col items-center justify-center text-center py-6">
+      <div class="w-full rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-7 sm:p-8 shadow-sm">
+        <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2">عالی بود! مرور تمام شد</h2>
+        <p id="completeSubtitle" class="text-sm text-slate-500 dark:text-slate-400 mb-6">تمام کارت‌های این جلسه را با موفقیت بررسی کردید.</p>
+
+        <div class="grid grid-cols-3 gap-2.5 mb-7">
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70">
+            <div id="statReviewed" class="text-xl font-bold text-slate-900 dark:text-white">۰</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">بررسی شده</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40">
+            <div id="statKnown" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">۰</div>
+            <div class="text-[11px] text-emerald-700/80 dark:text-emerald-400/80">بلدم</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-rose-50/70 dark:bg-rose-950/40">
+            <div id="statUnknown" class="text-xl font-bold text-rose-600 dark:text-rose-400">۰</div>
+            <div class="text-[11px] text-rose-700/80 dark:text-rose-400/80">نیاز به تکرار</div>
+          </div>
+        </div>
+
+        <button id="backToDashboardBtn" type="button"
+          class="w-full py-3.5 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition active:scale-[0.99]">
+          بازگشت به صفحه اصلی
+        </button>
+      </div>
+    </section>
+
+    <!-- فوتر ظریف -->
+    <footer class="mt-8 pt-4 text-center text-[11px] text-slate-400 dark:text-slate-600">
+      ذخیره‌سازی خودکار در حافظه مرورگر • آماده اجرا در حالت آفلاین
+    </footer>
+  </div>
+
+  <!-- ==================== مودال افزودن کارت دستی ==================== -->
+  <div id="addCardModal" class="hidden fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">افزودن فلش‌کارت جدید</h3>
+        <button type="button" data-close-modal="addCardModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="addCardForm" class="flex flex-col gap-4">
+        <div>
+          <label for="inputFront" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">روی کارت (سوال یا واژه)</label>
+          <textarea id="inputFront" rows="2" required placeholder="مثلاً: Ephemeral به چه معناست؟"
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div>
+          <label for="inputBack" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">پشت کارت (پاسخ یا توضیح)</label>
+          <textarea id="inputBack" rows="3" required placeholder="مثلاً: زودگذر، کوتاه‌مدت و ناپایدار"
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="inputChapter" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">فصل</label>
+            <input id="inputChapter" type="text" list="chapterSuggestions" placeholder="مثلاً: فصل ۱"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <datalist id="chapterSuggestions"></datalist>
+          </div>
+
+          <div>
+            <label for="inputLesson" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">درس</label>
+            <input id="inputLesson" type="text" list="lessonSuggestions" placeholder="مثلاً: درس ۱"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <datalist id="lessonSuggestions"></datalist>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 mt-2">
+          <button id="saveAndNextBtn" type="button"
+            class="py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-semibold transition">
+            ذخیره و کارت بعدی
+          </button>
+          <button type="submit"
+            class="py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition">
+            ذخیره کارت
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== مودال ویرایش سریع کارت (در حین مرور یا از لیست) ==================== -->
+  <div id="quickEditModal" class="hidden fixed inset-0 z-[55] bg-slate-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">ویرایش سریع فلش‌کارت</h3>
+        <button type="button" data-close-modal="quickEditModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="quickEditForm" class="flex flex-col gap-3.5">
+        <input type="hidden" id="editCardId" />
+        <div>
+          <label for="editFrontInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">روی کارت</label>
+          <textarea id="editFrontInput" rows="2" required
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div>
+          <label for="editBackInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">پشت کارت</label>
+          <textarea id="editBackInput" rows="3" required
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="editChapterInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">فصل</label>
+            <input id="editChapterInput" type="text" list="chapterSuggestions"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label for="editLessonInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">درس</label>
+            <input id="editLessonInput" type="text" list="lessonSuggestions"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2.5 mt-2">
+          <button id="deleteEditedCardBtn" type="button"
+            class="py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400 text-xs font-bold transition">
+            حذف کارت
+          </button>
+          <button type="submit"
+            class="flex-1 py-3 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition">
+            ذخیره تغییرات
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== مودال لیست و مدیریت کارت‌ها ==================== -->
+  <div id="cardListModal" class="hidden fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-lg h-[85vh] sm:h-[80vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xl flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">لیست کارت‌ها</h3>
+          <p id="listModalCount" class="text-xs text-slate-400">۰ کارت ثبت شده</p>
+        </div>
+        <button type="button" data-close-modal="cardListModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- جستجو و فیلتر خانه -->
+      <div class="flex flex-col gap-2.5 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input id="searchCardsInput" type="search" placeholder="جستجو در سوال، پاسخ یا درس..."
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+
+          <select id="listChapterFilterSelect"
+            class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="all">همه فصل‌ها</option>
+          </select>
+        </div>
+
+        <div id="boxFilterPills" class="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <!-- دکمه‌های فیلتر خانه‌ها و ستاره‌دارها توسط JS ساخته می‌شوند -->
+        </div>
+      </div>
+
+      <!-- لیست کارت‌ها -->
+      <div id="cardsListContainer" class="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-0.5">
+        <!-- آیتم‌های کارت -->
+      </div>
+
+      <!-- فوتر مودال لیست: خروجی و حذف همه -->
+      <div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+        <button id="exportJsonBtnList" type="button"
+          class="py-2.5 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+          خروجی پشتیبان (JSON)
+        </button>
+
+        <button id="clearAllCardsBtn" type="button"
+          class="py-2.5 px-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400 text-xs font-semibold transition">
+          حذف همه کارت‌ها
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال تنظیمات، سقف روزانه، نوتیفیکیشن و پشتیبان ==================== -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">تنظیمات و یادآور</h3>
+        <button type="button" data-close-modal="settingsModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <!-- بخش سقف کارت جدید روزانه -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-col gap-2.5">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-bold text-slate-800 dark:text-slate-100">سقف کارت جدید در روز</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">جلوگیری از انباشتگی کارت‌های تازه واردشده</div>
+            </div>
+            <select id="dailyNewLimitSelect"
+              class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="10">۱۰ کارت</option>
+              <option value="15">۱۵ کارت</option>
+              <option value="20" selected>۲۰ کارت</option>
+              <option value="30">۳۰ کارت</option>
+              <option value="50">۵۰ کارت</option>
+              <option value="0">نامحدود</option>
+            </select>
+          </div>
+          <p id="dailyNewUsageHint" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium"></p>
+        </div>
+
+        <!-- بخش نوتیفیکیشن یادآور -->
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-col gap-3.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-bold text-slate-800 dark:text-slate-100">یادآور روزانه مرور</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">ارسال نوتیفیکیشن در صورت وجود کارت</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="reminderToggle" type="checkbox" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+            <label for="reminderTimeInput" class="text-xs font-medium text-slate-600 dark:text-slate-300">ساعت یادآوری روزانه:</label>
+            <input id="reminderTimeInput" type="time" value="20:00"
+              class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <p id="notificationStatusHint" class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed"></p>
+
+          <button id="testNotificationBtn" type="button"
+            class="w-full py-2 px-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+            تست نوتیفیکیشن
+          </button>
+        </div>
+
+        <!-- بخش پشتیبان‌گیری، بازیابی و دانلود نسخه آفلاین -->
+        <div class="flex flex-col gap-2">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 px-1">پشتیبان‌گیری و نصب آفلاین</div>
+
+          <button id="exportBackupBtn" type="button"
+            class="w-full py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-semibold transition flex items-center justify-between">
+            <span>دانلود فایل پشتیبان کامل (JSON)</span>
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <button id="restoreBackupTriggerBtn" type="button"
+            class="w-full py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-semibold transition flex items-center justify-between">
+            <span>بازیابی از فایل پشتیبان (JSON)</span>
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <input id="restoreBackupInput" type="file" accept=".json,application/json" class="hidden" />
+
+          <button id="downloadOfflineAppBtn" type="button"
+            class="w-full py-3 px-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 text-xs sm:text-sm font-semibold transition flex items-center justify-between">
+            <span>دانلود فایل آفلاین برنامه (HTML)</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال ورود فایل با تعیین فصل و درس ==================== -->
+  <div id="importModal" class="hidden fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">ورود فلش‌کارت‌های درس</h3>
+          <p class="text-xs text-slate-400">تعیین فصل و درس برای انتقال مستقیم به خانه ۱ لایتنر</p>
+        </div>
+        <button type="button" data-close-modal="importModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="importChapterInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">نام فصل</label>
+            <input id="importChapterInput" type="text" list="importChapterSuggestions" placeholder="مثلاً: فصل ۱"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <datalist id="importChapterSuggestions"></datalist>
+          </div>
+
+          <div>
+            <label for="importLessonInput" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">نام درس</label>
+            <input id="importLessonInput" type="text" list="importLessonSuggestions" placeholder="مثلاً: درس ۱"
+              class="w-full rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <datalist id="importLessonSuggestions"></datalist>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+          <input id="overrideFileHierarchyCheckbox" type="checkbox" checked
+            class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+          <span>اعمال این فصل و درس روی تمام کارت‌های فایل انتخابی</span>
+        </label>
+
+        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+          فایل <span class="font-bold text-slate-700 dark:text-slate-200">JSON</span> یا <span class="font-bold text-slate-700 dark:text-slate-200">CSV</span> شامل فیلدهای <code class="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 font-mono">front</code> و <code class="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 font-mono">back</code> را انتخاب کنید تا به صورت خودکار وارد خانه ۱ لایتنر شوند.
+        </div>
+
+        <button id="selectFileAndImportBtn" type="button"
+          class="w-full py-3.5 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm shadow-emerald-600/20 transition flex items-center justify-center gap-2 active:scale-[0.99]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>انتخاب فایل و افزودن به لایتنر</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال کارنامه، درصد یادگیری فصل‌ها و کارت‌های چالش‌برانگیز ==================== -->
+  <div id="reportsModal" class="hidden fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-lg h-[88vh] sm:h-[84vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xl flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">کارنامه، فصل‌ها و کارت‌های چالش‌برانگیز</h3>
+          <p id="currentPersianMonthLabel" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium mt-0.5">ماه جاری</p>
+        </div>
+        <button type="button" data-close-modal="reportsModal" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- تب‌های ۳گانه: درصد یادگیری فصل‌ها / کارت‌های چالش‌برانگیز / کارنامه پایان ماه -->
+      <div class="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
+        <button id="tabChaptersBtn" type="button"
+          class="py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs transition">
+          یادگیری فصل‌ها
+        </button>
+        <button id="tabChallengingBtn" type="button"
+          class="py-2 px-2 rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-400 transition">
+          چالش‌برانگیزها ⭐
+        </button>
+        <button id="tabMonthlyBtn" type="button"
+          class="py-2 px-2 rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-400 transition">
+          کارنامه ماهانه
+        </button>
+      </div>
+
+      <!-- محتوای تب ۱: وضعیت فصل‌ها و درس‌ها -->
+      <div id="chaptersReportTabContent" class="flex-1 overflow-y-auto flex flex-col gap-3 pr-0.5">
+        <!-- رندر پویا توسط جاوااسکریپت -->
+      </div>
+
+      <!-- محتوای تب ۲: کارت‌های چالش‌برانگیز (ستاره‌دار) هر فصل -->
+      <div id="challengingReportTabContent" class="hidden flex-1 overflow-y-auto flex flex-col gap-3 pr-0.5">
+        <!-- رندر پویا توسط جاوااسکریپت -->
+      </div>
+
+      <!-- محتوای تب ۳: کارنامه پایان ماه -->
+      <div id="monthlyReportTabContent" class="hidden flex-1 overflow-y-auto flex flex-col gap-3 pr-0.5">
+        <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/70 dark:border-indigo-800/60 flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold text-slate-900 dark:text-white">ثبت کارنامه پایان ماه جاری</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">ذخیره درصد یادگیری فعلی فصل‌ها برای مقایسه ماهانه</div>
+            </div>
+            <button id="saveMonthlySnapshotBtn" type="button"
+              class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shrink-0 active:scale-95">
+              ثبت کارنامه ماه
+            </button>
+          </div>
+        </div>
+
+        <div id="monthlySnapshotsList" class="flex flex-col gap-3">
+          <!-- لیست کارنامه‌های ماهانه -->
+        </div>
+      </div>
+
+      <div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+        <span>تسلط: خانه ۱ (۰٪) تا خانه ۵ (۱۰۰٪)</span>
+        <button id="exportMonthlyReportTextBtn" type="button" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+          کپی گزارش متنی
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== مودال تایید اختصاصی (جایگزین confirm) ==================== -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <h4 id="confirmTitle" class="text-base font-bold text-slate-900 dark:text-white mb-1.5">آیا مطمئن هستید؟</h4>
+      <p id="confirmMessage" class="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">این عملیات قابل بازگشت نیست.</p>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button id="confirmCancelBtn" type="button"
+          class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+          انصراف
+        </button>
+        <button id="confirmAcceptBtn" type="button"
+          class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition">
+          بله، انجام شود
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== اعلان پیام (Toast) ==================== -->
+  <div id="toastContainer" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
+  <!-- ==================== منطق جاوااسکریپت اپلیکیشن ==================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      // ذخیره نسخه خام HTML اولیه برای دانلود فایل آفلاین تمیز
+      const PRISTINE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+      // کلیدهای ذخیره‌سازی در LocalStorage
+      const STORAGE_KEYS = {
+        CARDS: 'leitner_cards_v1',
+        INITIALIZED: 'leitner_initialized_v1',
+        SETTINGS: 'leitner_settings_v1',
+        THEME: 'leitner_theme_v1',
+        MONTHLY_REPORTS: 'leitner_monthly_reports_v1'
+      };
+
+      // فواصل زمانی ۵ خانه لایتنر (بر حسب روز و میلی‌ثانیه)
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const BOX_INTERVALS = {
+        1: 1,
+        2: 2,
+        3: 4,
+        4: 8,
+        5: 16
+      };
+
+      // کارت‌های نمونه فارسی و دوزبانه برای تست سریع
+      const SAMPLE_CARDS = [
+        {
+          id: 'sample-1',
+          front: 'سیستم لایتنر (Leitner System) چیست؟',
+          back: 'یک روش علمی برای یادگیری با تکرار فاصله‌دار که کارت‌ها را بر اساس میزان تسلط در ۵ خانه (۱، ۲، ۴، ۸ و ۱۶ روز) زمان‌بندی می‌کند.',
+          chapter: 'فصل ۱: آشنایی با لایتنر',
+          lesson: 'درس ۱: اصول پایه',
+          tag: 'فصل ۱: آشنایی با لایتنر',
+          box: 1,
+          isNew: true,
+          lapses: 0,
+          starred: false,
+          nextReview: Date.now()
+        },
+        {
+          id: 'sample-2',
+          front: 'Ephemeral',
+          back: 'زودگذر، کوتاه‌مدت و ناپایدار\n(روی آیکون بلندگو بزنید تا تلفظ انگلیسی را بشنوید)',
+          chapter: 'فصل ۲: واژگان نمونه',
+          lesson: 'درس ۱: لغات کلیدی',
+          tag: 'فصل ۲: واژگان نمونه',
+          box: 1,
+          isNew: true,
+          lapses: 0,
+          starred: false,
+          nextReview: Date.now()
+        },
+        {
+          id: 'sample-3',
+          front: 'حالت «دوره شب امتحان» چه کاربردی دارد؟',
+          back: 'به شما اجازه می‌دهد تمام کارت‌های یک فصل را بدون تغییر در خانه لایتنر و تاریخ مرور اصلی‌شان دوره کنید.',
+          chapter: 'فصل ۱: آشنایی با لایتنر',
+          lesson: 'درس ۲: امکانات پیشرفته',
+          tag: 'فصل ۱: آشنایی با لایتنر',
+          box: 1,
+          isNew: true,
+          lapses: 0,
+          starred: false,
+          nextReview: Date.now()
+        }
+      ];
+
+      // وضعیت اصلی برنامه (State)
+      let cards = [];
+      let monthlyReports = [];
+      let settings = {
+        reminderEnabled: false,
+        reminderTime: '20:00',
+        lastNotifiedDate: '',
+        dailyNewLimit: 20, // پیش‌فرض ۲۰ کارت جدید در روز (۰ = نامحدود)
+        dailyNewTracker: {
+          date: '',
+          count: 0,
+          extraBonus: 0
+        },
+        reviewsSinceLastBackup: 0
+      };
+
+      // فیلتر انتخاب‌شده در داشبورد
+      let selectedDashboardChapter = 'all';
+      let selectedDashboardLesson = 'all';
+
+      // وضعیت جلسه مرور فعلی
+      // mode: 'normal' | 'cram' | 'starred'
+      let reviewSession = {
+        mode: 'normal',
+        queue: [],
+        currentIndex: 0,
+        isFlipped: false,
+        knownCount: 0,
+        unknownCount: 0
+      };
+
+      // فیلتر لیست کارت‌ها
+      let listFilterBox = 'all';
+      let listFilterChapter = 'all';
+      let confirmCallback = null;
+
+      // ==================== توابع کمکی ====================
+
+      function toPersianDigits(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return String(num).replace(/\d/g, (d) => persianDigits[Number(d)]);
+      }
+
+      function generateId() {
+        return 'card-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 7);
+      }
+
+      function getTodayDateString() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function getCurrentPersianMonthInfo() {
+        const now = new Date();
+        try {
+          const monthName = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long' }).format(now);
+          const yearName = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric' }).format(now);
+          return { key: `${yearName}-${monthName}`, label: `${monthName} ${yearName}` };
+        } catch (e) {
+          const fallback = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          return { key: fallback, label: toPersianDigits(fallback) };
+        }
+      }
+
+      // تشخیص هوشمند جهت متن (RTL برای فارسی و LTR برای متون انگلیسی/لاتین)
+      function detectTextDirection(text) {
+        const str = String(text || '');
+        const persianArabicMatches = str.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || [];
+        const latinMatches = str.match(/[A-Za-z]/g) || [];
+        if (latinMatches.length > 0 && latinMatches.length > persianArabicMatches.length) {
+          return 'ltr';
+        }
+        return 'rtl';
+      }
+
+      // اطمینان از به‌روز بودن شمارنده کارت‌های جدید روزانه برای تاریخ امروز
+      function ensureTodayNewTracker() {
+        const today = getTodayDateString();
+        if (!settings.dailyNewTracker || settings.dailyNewTracker.date !== today) {
+          settings.dailyNewTracker = {
+            date: today,
+            count: 0,
+            extraBonus: 0
+          };
+        }
+      }
+
+      // محاسبه تعداد کارت جدید مجاز باقی‌مانده برای امروز
+      function getRemainingNewAllowanceToday() {
+        ensureTodayNewTracker();
+        const limit = Number(settings.dailyNewLimit);
+        if (limit === 0) return Infinity; // نامحدود
+        const totalCap = limit + (Number(settings.dailyNewTracker.extraBonus) || 0);
+        const used = Number(settings.dailyNewTracker.count) || 0;
+        return Math.max(0, totalCap - used);
+      }
+
+      // یکسان‌سازی ساختار کارت
+      function normalizeCard(raw) {
+        const chapter = String(raw.chapter || raw.tag || 'عمومی').trim() || 'عمومی';
+        const lesson = String(raw.lesson || 'درس عمومی').trim() || 'درس عمومی';
+        const box = Number(raw.box) >= 1 && Number(raw.box) <= 5 ? Number(raw.box) : 1;
+        const lapses = Number(raw.lapses) >= 0 ? Number(raw.lapses) : 0;
+        const isNew = typeof raw.isNew === 'boolean' ? raw.isNew : (box === 1 && lapses === 0 && !raw.reviewedOnce);
+        const starred = Boolean(raw.starred) || lapses >= 3;
+
+        return {
+          id: raw.id || generateId(),
+          front: String(raw.front || '').trim(),
+          back: String(raw.back || '').trim(),
+          chapter,
+          lesson,
+          tag: chapter,
+          box,
+          isNew,
+          lapses,
+          starred,
+          nextReview: typeof raw.nextReview === 'number' && !Number.isNaN(raw.nextReview) ? raw.nextReview : Date.now()
+        };
+      }
+
+      // محاسبه درصد یادگیری بر اساس جایگاه در خانه‌های ۱ تا ۵
+      function calculateMasteryPercentage(cardArray) {
+        if (!cardArray || cardArray.length === 0) return 0;
+        const totalScore = cardArray.reduce((sum, c) => {
+          const box = Math.min(Math.max(Number(c.box) || 1, 1), 5);
+          return sum + (box - 1) / 4;
+        }, 0);
+        return Math.round((totalScore / cardArray.length) * 100);
+      }
+
+      // محاسبه آمار کامل به تفکیک فصل و درس
+      function getChapterHierarchyStats() {
+        const chapterMap = new Map();
+
+        cards.forEach((card) => {
+          const ch = card.chapter || 'عمومی';
+          const ls = card.lesson || 'درس عمومی';
+
+          if (!chapterMap.has(ch)) {
+            chapterMap.set(ch, {
+              chapter: ch,
+              cards: [],
+              lessonsMap: new Map()
+            });
+          }
+
+          const chEntry = chapterMap.get(ch);
+          chEntry.cards.push(card);
+
+          if (!chEntry.lessonsMap.has(ls)) {
+            chEntry.lessonsMap.set(ls, []);
+          }
+          chEntry.lessonsMap.get(ls).push(card);
+        });
+
+        const result = [];
+        chapterMap.forEach((chEntry) => {
+          const lessons = [];
+          chEntry.lessonsMap.forEach((lessonCards, lessonName) => {
+            lessons.push({
+              lesson: lessonName,
+              total: lessonCards.length,
+              mastered: lessonCards.filter((c) => Number(c.box) === 5).length,
+              masteryPercent: calculateMasteryPercentage(lessonCards)
+            });
+          });
+
+          const challengingCards = chEntry.cards.filter((c) => c.starred || Number(c.lapses) >= 3);
+
+          result.push({
+            chapter: chEntry.chapter,
+            total: chEntry.cards.length,
+            mastered: chEntry.cards.filter((c) => Number(c.box) === 5).length,
+            due: getTodayStudyBreakdown(chEntry.cards).totalReady,
+            challengingCards,
+            masteryPercent: calculateMasteryPercentage(chEntry.cards),
+            lessons
+          });
+        });
+
+        return result;
+      }
+
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+
+        const colors = {
+          success: 'bg-emerald-600 text-white',
+          error: 'bg-rose-600 text-white',
+          info: 'bg-slate-900 dark:bg-slate-800 text-white border border-slate-700/60'
+        };
+
+        toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-lg text-xs sm:text-sm font-medium text-center transition-all duration-300 transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-2', 'opacity-0');
+        });
+
+        setTimeout(() => {
+          toast.classList.add('translate-y-2', 'opacity-0');
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      function openConfirmDialog(title, message, onConfirm) {
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        confirmCallback = onConfirm;
+        document.getElementById('confirmModal').classList.remove('hidden');
+      }
+
+      function closeConfirmDialog() {
+        document.getElementById('confirmModal').classList.add('hidden');
+        confirmCallback = null;
+      }
+
+      // ==================== تلفظ صوتی آفلاین (TTS) ====================
+
+      function speakText(text, btnElement) {
+        const cleanText = String(text || '').trim();
+        if (!cleanText) return;
+
+        if (!('speechSynthesis' in window)) {
+          showToast('مرورگر شما از تلفظ صوتی پشتیبانی نمی‌کند', 'info');
+          return;
+        }
+
+        try {
+          window.speechSynthesis.cancel();
+          document.querySelectorAll('.tts-speaking').forEach((el) => el.classList.remove('tts-speaking'));
+
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          const dir = detectTextDirection(cleanText);
+          utterance.lang = dir === 'ltr' ? 'en-US' : 'fa-IR';
+          utterance.rate = 0.95;
+
+          const voices = window.speechSynthesis.getVoices();
+          if (voices && voices.length > 0) {
+            const targetLangPrefix = dir === 'ltr' ? 'en' : 'fa';
+            const matchedVoice = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(targetLangPrefix));
+            if (matchedVoice) {
+              utterance.voice = matchedVoice;
+            }
+          }
+
+          if (btnElement) {
+            utterance.onstart = () => btnElement.classList.add('tts-speaking');
+            utterance.onend = () => btnElement.classList.remove('tts-speaking');
+            utterance.onerror = () => btnElement.classList.remove('tts-speaking');
+          }
+
+          window.speechSynthesis.speak(utterance);
+        } catch (err) {
+          if (btnElement) btnElement.classList.remove('tts-speaking');
+          showToast('تلفظ صوتی در این دستگاه در دسترس نیست', 'info');
+        }
+      }
+
+      // ==================== ذخیره‌سازی و بارگذاری ====================
+
+      function loadState() {
+        try {
+          const isInitialized = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
+          const savedCards = localStorage.getItem(STORAGE_KEYS.CARDS);
+
+          if (!isInitialized && !savedCards) {
+            cards = SAMPLE_CARDS.map(normalizeCard);
+            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
+            saveCards();
+          } else if (savedCards) {
+            const parsed = JSON.parse(savedCards);
+            cards = Array.isArray(parsed) ? parsed.map(normalizeCard) : [];
+          } else {
+            cards = [];
+          }
+
+          const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          if (savedSettings) {
+            settings = { ...settings, ...JSON.parse(savedSettings) };
+          }
+          ensureTodayNewTracker();
+
+          const savedReports = localStorage.getItem(STORAGE_KEYS.MONTHLY_REPORTS);
+          if (savedReports) {
+            const parsedReports = JSON.parse(savedReports);
+            monthlyReports = Array.isArray(parsedReports) ? parsedReports : [];
+          }
+        } catch (err) {
+          console.error('خطا در خواندن حافظه مرورگر:', err);
+          cards = [];
+        }
+      }
+
+      function saveCards() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.CARDS, JSON.stringify(cards));
+          localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
+        } catch (err) {
+          showToast('خطا در ذخیره‌سازی اطلاعات در مرورگر', 'error');
+        }
+      }
+
+      function saveSettings() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        } catch (err) {
+          console.error('خطا در ذخیره تنظیمات:', err);
+        }
+      }
+
+      function saveMonthlyReports() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.MONTHLY_REPORTS, JSON.stringify(monthlyReports));
+        } catch (err) {
+          showToast('خطا در ذخیره گزارش ماهانه', 'error');
+        }
+      }
+
+      function initTheme() {
+        const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+
+      function toggleTheme() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem(STORAGE_KEYS.THEME, isDark ? 'dark' : 'light');
+      }
+
+      // ==================== محاسبات برنامه امروز (سقف روزانه + موعدرسیده) ====================
+
+      function getFilteredDashboardCards() {
+        return cards.filter((c) => {
+          const matchChapter = selectedDashboardChapter === 'all' || c.chapter === selectedDashboardChapter;
+          const matchLesson = selectedDashboardLesson === 'all' || c.lesson === selectedDashboardLesson;
+          return matchChapter && matchLesson;
+        });
+      }
+
+      function getTodayStudyBreakdown(sourceCards = cards) {
+        const now = Date.now();
+        const dueReviewCards = sourceCards.filter((c) => !c.isNew && Number(c.nextReview) <= now);
+        const allNewCards = sourceCards.filter((c) => Boolean(c.isNew));
+
+        const allowance = getRemainingNewAllowanceToday();
+        const allowedNewCards = allowance === Infinity ? allNewCards : allNewCards.slice(0, allowance);
+        const lockedNewCount = Math.max(0, allNewCards.length - allowedNewCards.length);
+
+        return {
+          dueReviewCards,
+          allowedNewCards,
+          lockedNewCount,
+          totalReady: dueReviewCards.length + allowedNewCards.length
+        };
+      }
+
+      function populateHierarchySelects() {
+        const chapterSelect = document.getElementById('dashboardChapterSelect');
+        const lessonSelect = document.getElementById('dashboardLessonSelect');
+
+        const uniqueChapters = [...new Set(cards.map((c) => c.chapter || 'عمومی'))];
+
+        if (selectedDashboardChapter !== 'all' && !uniqueChapters.includes(selectedDashboardChapter)) {
+          selectedDashboardChapter = 'all';
+          selectedDashboardLesson = 'all';
+        }
+
+        chapterSelect.innerHTML = '<option value="all">همه فصل‌ها</option>';
+        uniqueChapters.forEach((ch) => {
+          const opt = document.createElement('option');
+          opt.value = ch;
+          opt.textContent = ch;
+          chapterSelect.appendChild(opt);
+        });
+        chapterSelect.value = selectedDashboardChapter;
+
+        const cardsForLessons =
+          selectedDashboardChapter === 'all' ? cards : cards.filter((c) => c.chapter === selectedDashboardChapter);
+        const uniqueLessons = [...new Set(cardsForLessons.map((c) => c.lesson || 'درس عمومی'))];
+
+        if (selectedDashboardLesson !== 'all' && !uniqueLessons.includes(selectedDashboardLesson)) {
+          selectedDashboardLesson = 'all';
+        }
+
+        lessonSelect.innerHTML = '<option value="all">همه درس‌ها</option>';
+        uniqueLessons.forEach((ls) => {
+          const opt = document.createElement('option');
+          opt.value = ls;
+          opt.textContent = ls;
+          lessonSelect.appendChild(opt);
+        });
+        lessonSelect.value = selectedDashboardLesson;
+
+        const updateDatalist = (id, values) => {
+          const dl = document.getElementById(id);
+          if (!dl) return;
+          dl.innerHTML = '';
+          values.forEach((v) => {
+            const option = document.createElement('option');
+            option.value = v;
+            dl.appendChild(option);
+          });
+        };
+
+        const allLessons = [...new Set(cards.map((c) => c.lesson || 'درس عمومی'))];
+        updateDatalist('chapterSuggestions', uniqueChapters);
+        updateDatalist('importChapterSuggestions', uniqueChapters);
+        updateDatalist('lessonSuggestions', allLessons);
+        updateDatalist('importLessonSuggestions', allLessons);
+      }
+
+      function renderDashboard() {
+        populateHierarchySelects();
+
+        const scopedCards = getFilteredDashboardCards();
+        const breakdown = getTodayStudyBreakdown(scopedCards);
+        const totalCount = scopedCards.length;
+        const starredCount = scopedCards.filter((c) => c.starred || Number(c.lapses) >= 3).length;
+
+        document.getElementById('dueCountDisplay').textContent = toPersianDigits(breakdown.totalReady);
+        document.getElementById('totalCardsBadge').textContent =
+          selectedDashboardChapter === 'all'
+            ? `کل کارت‌ها: ${toPersianDigits(totalCount)}`
+            : `کارت‌های این بخش: ${toPersianDigits(totalCount)}`;
+
+        // نمایش تفکیک مروری و جدید مجاز امروز
+        const breakdownRow = document.getElementById('dailyBreakdownRow');
+        const unlockBtn = document.getElementById('unlockMoreNewBtn');
+        if (totalCount === 0) {
+          breakdownRow.classList.add('hidden');
+        } else {
+          breakdownRow.classList.remove('hidden');
+          document.getElementById('dueReviewBreakdown').textContent = `مروری: ${toPersianDigits(breakdown.dueReviewCards.length)}`;
+          document.getElementById('dueNewBreakdown').textContent = `جدید امروز: ${toPersianDigits(breakdown.allowedNewCards.length)}`;
+          if (breakdown.lockedNewCount > 0) {
+            unlockBtn.classList.remove('hidden');
+            unlockBtn.textContent = `+ باز کردن ۱۰ جدید (${toPersianDigits(breakdown.lockedNewCount)} مانده)`;
+          } else {
+            unlockBtn.classList.add('hidden');
+          }
+        }
+
+        // نمایش یا مخفی کردن دکمه کارت‌های نمونه در صورت خالی بودن کل برنامه
+        document.getElementById('emptySampleBox').classList.toggle('hidden', cards.length > 0);
+
+        const startBtn = document.getElementById('startReviewBtn');
+        const startBtnText = document.getElementById('startReviewBtnText');
+        const dueSubtitle = document.getElementById('dueSubtitle');
+        const specialModesRow = document.getElementById('specialModesRow');
+
+        if (totalCount === 0) {
+          startBtn.disabled = true;
+          startBtnText.textContent = 'کارتی وجود ندارد';
+          dueSubtitle.textContent = 'فایل یک درس را وارد کنید یا کارت‌های نمونه را بارگذاری نمایید';
+          specialModesRow.classList.add('hidden');
+        } else {
+          specialModesRow.classList.remove('hidden');
+          document.getElementById('starredReviewBtnText').textContent = `ستاره‌دارها (${toPersianDigits(starredCount)})`;
+
+          if (breakdown.totalReady === 0) {
+            startBtn.disabled = true;
+            startBtnText.textContent = 'مرور امروز تکمیل شد 🎉';
+            dueSubtitle.textContent = 'می‌توانید از حالت دوره شب امتحان برای تمرین بیشتر استفاده کنید';
+          } else {
+            startBtn.disabled = false;
+            startBtnText.textContent = `شروع مرور (${toPersianDigits(breakdown.totalReady)} کارت)`;
+            dueSubtitle.textContent =
+              selectedDashboardChapter === 'all'
+                ? 'کارت‌های آماده مرور امروز'
+                : `${selectedDashboardChapter}${selectedDashboardLesson !== 'all' ? ' • ' + selectedDashboardLesson : ''}`;
+          }
+        }
+
+        // رندر ۵ خانه لایتنر
+        const boxesContainer = document.getElementById('boxesContainer');
+        boxesContainer.innerHTML = '';
+
+        for (let boxNum = 1; boxNum <= 5; boxNum++) {
+          const countInBox = scopedCards.filter((c) => Number(c.box) === boxNum).length;
+          const intervalDays = BOX_INTERVALS[boxNum];
+
+          const boxEl = document.createElement('button');
+          boxEl.type = 'button';
+          boxEl.title = `مشاهده کارت‌های خانه ${toPersianDigits(boxNum)}`;
+          boxEl.className = 'p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-indigo-50/70 dark:hover:bg-indigo-950/40 border border-slate-200/60 dark:border-slate-700/60 flex flex-col items-center justify-center gap-1 transition active:scale-95';
+          boxEl.innerHTML = `
+            <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">خانه ${toPersianDigits(boxNum)}</span>
+            <span class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">${toPersianDigits(countInBox)}</span>
+            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">${toPersianDigits(intervalDays)} روز</span>
+          `;
+          boxEl.addEventListener('click', () => {
+            listFilterBox = String(boxNum);
+            listFilterChapter = selectedDashboardChapter;
+            openModal('cardListModal');
+            renderCardList();
+          });
+          boxesContainer.appendChild(boxEl);
+        }
+
+        // خلاصه درصد یادگیری فصل‌ها
+        const chapterStats = getChapterHierarchyStats();
+        const overallMastery = calculateMasteryPercentage(cards);
+        document.getElementById('dashboardChaptersSummary').textContent =
+          `${toPersianDigits(chapterStats.length)} فصل • میانگین تسلط کل: ${toPersianDigits(overallMastery)}٪`;
+        document.getElementById('overallMasteryBar').style.width = `${overallMastery}%`;
+
+        // نشانگر یادآور روزانه
+        document.getElementById('reminderActiveDot').classList.toggle('hidden', !settings.reminderEnabled);
+
+        // بنر یادآور پشتیبان‌گیری (بعد از هر ۵۰ مرور)
+        const showBackupBanner = Number(settings.reviewsSinceLastBackup) >= 50 && cards.length > 0;
+        document.getElementById('backupReminderBanner').classList.toggle('hidden', !showBackupBanner);
+      }
+
+      // ==================== منطق جلسه مرور فلش‌کارت ====================
+
+      function switchView(viewName) {
+        ['dashboardView', 'reviewView', 'completeView'].forEach((v) => {
+          document.getElementById(v).classList.toggle('hidden', v !== viewName);
+        });
+      }
+
+      // mode: 'normal' | 'cram' | 'starred'
+      function startReviewSession(mode = 'normal') {
+        const scopedCards = getFilteredDashboardCards();
+        let sessionCards = [];
+
+        if (mode === 'cram') {
+          sessionCards = [...scopedCards];
+          if (sessionCards.length === 0) {
+            showToast('کارتی برای دوره شب امتحان در این بخش وجود ندارد', 'info');
+            return;
+          }
+        } else if (mode === 'starred') {
+          sessionCards = scopedCards.filter((c) => c.starred || Number(c.lapses) >= 3);
+          if (sessionCards.length === 0) {
+            showToast('هیچ کارت ستاره‌دار یا چالش‌برانگیزی در این بخش وجود ندارد', 'info');
+            return;
+          }
+        } else {
+          const breakdown = getTodayStudyBreakdown(scopedCards);
+          sessionCards = [...breakdown.dueReviewCards, ...breakdown.allowedNewCards];
+          if (sessionCards.length === 0) {
+            showToast('کارتی برای مرور امروز در این بخش وجود ندارد', 'info');
+            return;
+          }
+        }
+
+        // مرتب‌سازی: ابتدا کارت‌های مروری قدیمی‌تر، سپس کارت‌های جدید
+        sessionCards.sort((a, b) => {
+          if (Boolean(a.isNew) !== Boolean(b.isNew)) {
+            return a.isNew ? 1 : -1;
+          }
+          return Number(a.nextReview) - Number(b.nextReview);
+        });
+
+        reviewSession = {
+          mode,
+          queue: sessionCards,
+          currentIndex: 0,
+          isFlipped: false,
+          knownCount: 0,
+          unknownCount: 0
+        };
+
+        document.getElementById('cramModeBannerBadge').classList.toggle('hidden', mode !== 'cram');
+        document.getElementById('starredModeBannerBadge').classList.toggle('hidden', mode !== 'starred');
+
+        switchView('reviewView');
+        renderCurrentReviewCard();
+      }
+
+      function updateCardStarVisuals(isStarred) {
+        document.querySelectorAll('.star-icon-svg').forEach((svg) => {
+          if (isStarred) {
+            svg.setAttribute('fill', 'currentColor');
+            svg.classList.add('text-amber-400');
+          } else {
+            svg.setAttribute('fill', 'none');
+            svg.classList.remove('text-amber-400');
+          }
+        });
+      }
+
+      function renderCurrentReviewCard() {
+        const { queue, currentIndex, mode } = reviewSession;
+        if (currentIndex >= queue.length) {
+          finishReviewSession();
+          return;
+        }
+
+        // یافتن آخرین نسخه کارت از آرایه اصلی
+        const queueItem = queue[currentIndex];
+        const card = cards.find((c) => c.id === queueItem.id) || queueItem;
+        queue[currentIndex] = card;
+
+        reviewSession.isFlipped = false;
+
+        // بازنشانی وضعیت کشیدن لمسی و چرخش کارت
+        const swipeWrapper = document.getElementById('swipeWrapper');
+        swipeWrapper.style.transform = '';
+        swipeWrapper.style.opacity = '1';
+        document.getElementById('swipeKnowBadge').style.opacity = '0';
+        document.getElementById('swipeDontBadge').style.opacity = '0';
+
+        const flipInner = document.getElementById('flipCardInner');
+        flipInner.style.transition = 'none';
+        flipInner.classList.remove('is-flipped');
+        void flipInner.offsetWidth;
+        flipInner.style.transition = '';
+
+        const total = queue.length;
+        const currentNumber = currentIndex + 1;
+        document.getElementById('reviewProgressText').textContent = `${toPersianDigits(currentNumber)} از ${toPersianDigits(total)}`;
+        document.getElementById('reviewProgressBar').style.width = `${((currentNumber - 1) / total) * 100}%`;
+
+        const boxNum = Number(card.box) || 1;
+        const nextBox = Math.min(boxNum + 1, 5);
+        const nextDays = BOX_INTERVALS[nextBox];
+
+        const hierarchyLabel = `${card.chapter || 'عمومی'} • ${card.lesson || 'درس عمومی'}`;
+        document.getElementById('cardBoxBadgeFront').textContent = card.isNew
+          ? 'کارت جدید'
+          : `خانه ${toPersianDigits(boxNum)}`;
+        document.getElementById('cardTagBadgeFront').textContent = hierarchyLabel;
+        document.getElementById('cardTagBadgeBack').textContent = hierarchyLabel;
+
+        // جهت‌دهی خودکار متن روی کارت و پشت کارت
+        const frontEl = document.getElementById('cardFrontText');
+        const backEl = document.getElementById('cardBackText');
+        frontEl.dir = detectTextDirection(card.front);
+        backEl.dir = detectTextDirection(card.back);
+        frontEl.textContent = card.front;
+        backEl.textContent = card.back;
+
+        // وضعیت ستاره کارت
+        updateCardStarVisuals(Boolean(card.starred));
+
+        // تنظیم متن دکمه‌های ارزیابی بر اساس حالت مرور (عادی یا شب امتحان)
+        if (mode === 'cram') {
+          document.getElementById('dontKnowMainText').textContent = 'نیاز به مرور مجدد';
+          document.getElementById('dontKnowSubtext').textContent = 'تکرار در انتهای جلسه';
+          document.getElementById('knowItMainText').textContent = 'یاد گرفتم';
+          document.getElementById('knowItSubtext').textContent = 'بدون تغییر در لایتنر';
+          document.getElementById('nextIntervalHint').textContent = 'حالت دوره شب امتحان (جایگاه کارت تغییر نمی‌کند)';
+        } else {
+          document.getElementById('dontKnowMainText').textContent = 'بلد نیستم';
+          document.getElementById('dontKnowSubtext').textContent = 'بازگشت به خانه ۱';
+          document.getElementById('knowItMainText').textContent = 'بلدم';
+          document.getElementById('knowItSubtext').textContent =
+            boxNum === 5 ? `تثبیت در خانه ۵ (${toPersianDigits(nextDays)} روز)` : `خانه ${toPersianDigits(nextBox)} (${toPersianDigits(nextDays)} روز)`;
+          document.getElementById('nextIntervalHint').textContent = 'میزان تسلط خود را انتخاب کنید';
+        }
+
+        document.getElementById('revealAnswerBtn').classList.remove('hidden');
+        document.getElementById('answerActionsRow').classList.add('hidden');
+      }
+
+      function flipCurrentCard() {
+        if (document.getElementById('reviewView').classList.contains('hidden')) return;
+        reviewSession.isFlipped = !reviewSession.isFlipped;
+        const flipInner = document.getElementById('flipCardInner');
+        flipInner.classList.toggle('is-flipped', reviewSession.isFlipped);
+
+        if (reviewSession.isFlipped) {
+          document.getElementById('revealAnswerBtn').classList.add('hidden');
+          document.getElementById('answerActionsRow').classList.remove('hidden');
+        } else {
+          document.getElementById('revealAnswerBtn').classList.remove('hidden');
+          document.getElementById('answerActionsRow').classList.add('hidden');
+        }
+      }
+
+      function handleCardAnswer(isKnown, fromSwipe = false) {
+        if (!fromSwipe && !reviewSession.isFlipped) return;
+
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+
+        const currentCard = reviewSession.queue[reviewSession.currentIndex];
+        const cardIndexInMain = cards.findIndex((c) => c.id === currentCard.id);
+
+        if (reviewSession.mode === 'cram') {
+          // حالت دوره شب امتحان: بدون تغییر در خانه لایتنر یا تاریخ مرور
+          if (isKnown) {
+            reviewSession.knownCount++;
+          } else {
+            reviewSession.unknownCount++;
+            // اضافه کردن دوباره کارت به انتهای صف همین جلسه
+            reviewSession.queue.push(currentCard);
+          }
+        } else {
+          // حالت مرور عادی یا مرور ستاره‌دارها: به‌روزرسانی سیستم لایتنر
+          if (cardIndexInMain !== -1) {
+            const targetCard = cards[cardIndexInMain];
+            const now = Date.now();
+
+            // اگر کارت جدید بود، به سهمیه کارت‌های جدید امروز اضافه شود
+            if (targetCard.isNew) {
+              ensureTodayNewTracker();
+              settings.dailyNewTracker.count = (Number(settings.dailyNewTracker.count) || 0) + 1;
+              targetCard.isNew = false;
+            }
+
+            if (isKnown) {
+              const currentBox = Number(targetCard.box) || 1;
+              const nextBox = Math.min(currentBox + 1, 5);
+              const intervalDays = BOX_INTERVALS[nextBox];
+              targetCard.box = nextBox;
+              targetCard.nextReview = now + intervalDays * DAY_MS;
+              reviewSession.knownCount++;
+            } else {
+              targetCard.box = 1;
+              targetCard.nextReview = now + BOX_INTERVALS[1] * DAY_MS;
+              targetCard.lapses = (Number(targetCard.lapses) || 0) + 1;
+
+              // ستاره‌دار شدن خودکار پس از ۳ بار برگشت به خانه ۱
+              if (targetCard.lapses >= 3 && !targetCard.starred) {
+                targetCard.starred = true;
+                showToast('کارت ۳ بار تکرار شد و خودکار ستاره‌دار شد ⭐', 'info');
+              }
+              reviewSession.unknownCount++;
+            }
+
+            // افزایش شمارنده مرور برای یادآور بکاپ دوره‌ای (هر ۵۰ مرور)
+            settings.reviewsSinceLastBackup = (Number(settings.reviewsSinceLastBackup) || 0) + 1;
+
+            saveCards();
+            saveSettings();
+          }
+        }
+
+        reviewSession.currentIndex++;
+        renderCurrentReviewCard();
+      }
+
+      function finishReviewSession() {
+        document.getElementById('reviewProgressBar').style.width = '100%';
+        const reviewedTotal = reviewSession.knownCount + reviewSession.unknownCount;
+        document.getElementById('statReviewed').textContent = toPersianDigits(reviewedTotal);
+        document.getElementById('statKnown').textContent = toPersianDigits(reviewSession.knownCount);
+        document.getElementById('statUnknown').textContent = toPersianDigits(reviewSession.unknownCount);
+
+        document.getElementById('completeSubtitle').textContent =
+          reviewSession.mode === 'cram'
+            ? 'دوره شب امتحان تمام شد (جایگاه اصلی کارت‌ها در لایتنر حفظ شد).'
+            : 'تمام کارت‌های این جلسه با موفقیت بررسی و زمان‌بندی شدند.';
+
+        switchView('completeView');
+      }
+
+      // ==================== ژست‌های حرکتی لمسی (Touch Swipe) ====================
+
+      function setupSwipeGestures() {
+        const container = document.getElementById('flashcardContainer');
+        const wrapper = document.getElementById('swipeWrapper');
+        const knowBadge = document.getElementById('swipeKnowBadge');
+        const dontBadge = document.getElementById('swipeDontBadge');
+
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let isDragging = false;
+        let isHorizontalSwipe = false;
+
+        container.addEventListener('touchstart', (e) => {
+          if (e.touches.length !== 1) return;
+          // اگر کاربر روی دکمه‌های ابزار داخل کارت زد، ژست کشیدن شروع نشود
+          if (e.target.closest('button')) return;
+
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          currentX = startX;
+          isDragging = true;
+          isHorizontalSwipe = false;
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+          if (!isDragging || e.touches.length !== 1) return;
+
+          currentX = e.touches[0].clientX;
+          const currentY = e.touches[0].clientY;
+          const deltaX = currentX - startX;
+          const deltaY = currentY - startY;
+
+          if (!isHorizontalSwipe) {
+            if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY)) {
+              isHorizontalSwipe = true;
+              wrapper.classList.add('is-dragging');
+            } else if (Math.abs(deltaY) > 14) {
+              isDragging = false;
+              return;
+            }
+          }
+
+          if (isHorizontalSwipe) {
+            if (e.cancelable) e.preventDefault();
+            const rotateDeg = deltaX * 0.04;
+            wrapper.style.transform = `translateX(${deltaX}px) rotate(${rotateDeg}deg)`;
+
+            if (deltaX > 25) {
+              knowBadge.style.opacity = String(Math.min(1, (deltaX - 25) / 70));
+              dontBadge.style.opacity = '0';
+            } else if (deltaX < -25) {
+              dontBadge.style.opacity = String(Math.min(1, (-deltaX - 25) / 70));
+              knowBadge.style.opacity = '0';
+            } else {
+              knowBadge.style.opacity = '0';
+              dontBadge.style.opacity = '0';
+            }
+          }
+        }, { passive: false });
+
+        const endSwipe = () => {
+          if (!isDragging) return;
+          isDragging = false;
+          wrapper.classList.remove('is-dragging');
+
+          if (!isHorizontalSwipe) return;
+
+          const deltaX = currentX - startX;
+          const threshold = 95;
+
+          if (deltaX > threshold) {
+            // کشیدن به راست -> بلدم
+            wrapper.style.transform = 'translateX(120%) rotate(12deg)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => handleCardAnswer(true, true), 180);
+          } else if (deltaX < -threshold) {
+            // کشیدن به چپ -> بلد نیستم
+            wrapper.style.transform = 'translateX(-120%) rotate(-12deg)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => handleCardAnswer(false, true), 180);
+          } else {
+            // بازگشت به مرکز
+            wrapper.style.transform = '';
+            knowBadge.style.opacity = '0';
+            dontBadge.style.opacity = '0';
+          }
+        };
+
+        container.addEventListener('touchend', endSwipe);
+        container.addEventListener('touchcancel', endSwipe);
+      }
+
+      // ==================== ستاره‌دار کردن و ویرایش سریع کارت ====================
+
+      function toggleCurrentCardStar() {
+        const currentCard = reviewSession.queue[reviewSession.currentIndex];
+        if (!currentCard) return;
+
+        const idx = cards.findIndex((c) => c.id === currentCard.id);
+        if (idx === -1) return;
+
+        cards[idx].starred = !cards[idx].starred;
+        saveCards();
+        updateCardStarVisuals(cards[idx].starred);
+        showToast(cards[idx].starred ? 'به کارت‌های چالش‌برانگیز اضافه شد ⭐' : 'ستاره کارت برداشته شد', 'info');
+      }
+
+      function openQuickEditModal(cardId) {
+        const card = cards.find((c) => c.id === cardId);
+        if (!card) return;
+
+        document.getElementById('editCardId').value = card.id;
+        document.getElementById('editFrontInput').value = card.front;
+        document.getElementById('editBackInput').value = card.back;
+        document.getElementById('editChapterInput').value = card.chapter || 'عمومی';
+        document.getElementById('editLessonInput').value = card.lesson || 'درس عمومی';
+
+        openModal('quickEditModal');
+      }
+
+      function saveQuickEdit(e) {
+        e.preventDefault();
+        const id = document.getElementById('editCardId').value;
+        const front = document.getElementById('editFrontInput').value.trim();
+        const back = document.getElementById('editBackInput').value.trim();
+        const chapter = document.getElementById('editChapterInput').value.trim() || 'عمومی';
+        const lesson = document.getElementById('editLessonInput').value.trim() || 'درس عمومی';
+
+        if (!front || !back) {
+          showToast('متن روی کارت و پشت کارت نمی‌تواند خالی باشد', 'error');
+          return;
+        }
+
+        const idx = cards.findIndex((c) => c.id === id);
+        if (idx !== -1) {
+          cards[idx].front = front;
+          cards[idx].back = back;
+          cards[idx].chapter = chapter;
+          cards[idx].lesson = lesson;
+          cards[idx].tag = chapter;
+
+          saveCards();
+          closeModal('quickEditModal');
+          renderDashboard();
+
+          if (!document.getElementById('reviewView').classList.contains('hidden')) {
+            renderCurrentReviewCard();
+          }
+          if (!document.getElementById('cardListModal').classList.contains('hidden')) {
+            renderCardList();
+          }
+          showToast('تغییرات کارت ذخیره شد', 'success');
+        }
+      }
+
+      // ==================== ورود فایل JSON و CSV ====================
+
+      function parseCSV(text) {
+        const cleanText = text.replace(/^\uFEFF/, '');
+        const rows = [];
+        let currentRow = [];
+        let currentField = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < cleanText.length; i++) {
+          const char = cleanText[i];
+          const nextChar = cleanText[i + 1];
+
+          if (inQuotes) {
+            if (char === '"' && nextChar === '"') {
+              currentField += '"';
+              i++;
+            } else if (char === '"') {
+              inQuotes = false;
+            } else {
+              currentField += char;
+            }
+          } else {
+            if (char === '"') {
+              inQuotes = true;
+            } else if (char === ',') {
+              currentRow.push(currentField.trim());
+              currentField = '';
+            } else if (char === '\r' && nextChar === '\n') {
+              currentRow.push(currentField.trim());
+              rows.push(currentRow);
+              currentRow = [];
+              currentField = '';
+              i++;
+            } else if (char === '\n' || char === '\r') {
+              currentRow.push(currentField.trim());
+              rows.push(currentRow);
+              currentRow = [];
+              currentField = '';
+            } else {
+              currentField += char;
+            }
+          }
+        }
+
+        if (currentField.length > 0 || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+          rows.push(currentRow);
+        }
+
+        const nonEmptyRows = rows.filter((r) => r.length >= 2 && (r[0] || r[1]));
+        if (nonEmptyRows.length === 0) return [];
+
+        const firstCol = nonEmptyRows[0][0].toLowerCase();
+        const secondCol = nonEmptyRows[0][1].toLowerCase();
+        const isHeader =
+          ['front', 'question', 'سوال', 'روی کارت', 'واژه'].includes(firstCol) &&
+          ['back', 'answer', 'پاسخ', 'پشت کارت', 'معنی'].includes(secondCol);
+
+        const dataRows = isHeader ? nonEmptyRows.slice(1) : nonEmptyRows;
+
+        return dataRows
+          .filter((r) => r[0] && r[1])
+          .map((r) => ({
+            front: r[0],
+            back: r[1],
+            chapter: r[2] || '',
+            lesson: r[3] || ''
+          }));
+      }
+
+      function handleFileUpload(event, isFullBackupRestore = false) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const targetChapter = document.getElementById('importChapterInput').value.trim();
+        const targetLesson = document.getElementById('importLessonInput').value.trim();
+        const overrideHierarchy = !isFullBackupRestore && document.getElementById('overrideFileHierarchyCheckbox').checked;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const content = e.target.result;
+            const fileName = file.name.toLowerCase();
+            let rawItems = [];
+
+            if (!isFullBackupRestore && fileName.endsWith('.csv')) {
+              rawItems = parseCSV(content);
+            } else {
+              const parsed = JSON.parse(content);
+              if (Array.isArray(parsed)) {
+                rawItems = parsed;
+              } else if (parsed && Array.isArray(parsed.cards)) {
+                rawItems = parsed.cards;
+              } else {
+                throw new Error('ساختار فایل JSON معتبر نیست.');
+              }
+            }
+
+            const now = Date.now();
+            let addedCount = 0;
+
+            rawItems.forEach((item) => {
+              if (!item || typeof item !== 'object') return;
+              const front = String(item.front || '').trim();
+              const back = String(item.back || '').trim();
+              if (!front || !back) return;
+
+              const validBox = Number(item.box) >= 1 && Number(item.box) <= 5 ? Number(item.box) : 1;
+              const validNextReview =
+                typeof item.nextReview === 'number' && !Number.isNaN(item.nextReview) ? item.nextReview : now;
+
+              const fileChapter = String(item.chapter || item.tag || '').trim();
+              const fileLesson = String(item.lesson || '').trim();
+
+              const finalChapter = isFullBackupRestore
+                ? fileChapter || 'عمومی'
+                : (overrideHierarchy && targetChapter) || fileChapter || targetChapter || 'عمومی';
+              const finalLesson = isFullBackupRestore
+                ? fileLesson || 'درس عمومی'
+                : (overrideHierarchy && targetLesson) || fileLesson || targetLesson || 'درس عمومی';
+
+              const lapses = Number(item.lapses) >= 0 ? Number(item.lapses) : 0;
+              const isNew = typeof item.isNew === 'boolean' ? item.isNew : (validBox === 1 && lapses === 0);
+              const starred = Boolean(item.starred) || lapses >= 3;
+
+              cards.push({
+                id: generateId(),
+                front,
+                back,
+                chapter: finalChapter,
+                lesson: finalLesson,
+                tag: finalChapter,
+                box: validBox,
+                isNew,
+                lapses,
+                starred,
+                nextReview: validNextReview
+              });
+              addedCount++;
+            });
+
+            if (addedCount > 0) {
+              saveCards();
+              closeModal('importModal');
+              closeModal('settingsModal');
+              renderDashboard();
+              showToast(`${toPersianDigits(addedCount)} کارت با موفقیت وارد برنامه شد`, 'success');
+            } else {
+              showToast('هیچ کارت معتبری در فایل پیدا نشد', 'error');
+            }
+          } catch (err) {
+            console.error(err);
+            showToast('خطا در خواندن فایل! ساختار JSON یا CSV را بررسی کنید.', 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+
+        reader.readAsText(file, 'UTF-8');
+      }
+
+      // ==================== خروجی پشتیبان و دانلود آفلاین ====================
+
+      function exportBackupJson() {
+        if (cards.length === 0) {
+          showToast('کارتی برای خروجی گرفتن وجود ندارد', 'info');
+          return;
+        }
+
+        const backupPayload = {
+          app: 'Leitner Minimal Flashcards',
+          version: 2,
+          exportedAt: new Date().toISOString(),
+          cards
+        };
+
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `leitner-backup-${getTodayDateString()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        // صفر کردن شمارنده مرورها برای یادآور بکاپ‌گیری
+        settings.reviewsSinceLastBackup = 0;
+        saveSettings();
+        renderDashboard();
+
+        showToast('فایل پشتیبان کامل با موفقیت دانلود شد', 'success');
+      }
+
+      function downloadOfflineHtmlApp() {
+        const blob = new Blob([PRISTINE_HTML], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'leitner-flashcards.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('فایل آفلاین برنامه (HTML) دانلود شد', 'success');
+      }
+
+      // ==================== مدیریت مودال‌ها و لیست کارت‌ها ====================
+
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+      }
+
+      function addManualCard(keepOpen = false) {
+        const frontInput = document.getElementById('inputFront');
+        const backInput = document.getElementById('inputBack');
+        const chapterInput = document.getElementById('inputChapter');
+        const lessonInput = document.getElementById('inputLesson');
+
+        const front = frontInput.value.trim();
+        const back = backInput.value.trim();
+        const chapter = chapterInput.value.trim() || 'عمومی';
+        const lesson = lessonInput.value.trim() || 'درس عمومی';
+
+        if (!front || !back) {
+          showToast('لطفاً متن روی کارت و پشت کارت را وارد کنید', 'error');
+          return;
+        }
+
+        cards.push({
+          id: generateId(),
+          front,
+          back,
+          chapter,
+          lesson,
+          tag: chapter,
+          box: 1,
+          isNew: true,
+          lapses: 0,
+          starred: false,
+          nextReview: Date.now()
+        });
+
+        saveCards();
+        renderDashboard();
+
+        frontInput.value = '';
+        backInput.value = '';
+
+        if (keepOpen) {
+          frontInput.focus();
+          showToast('کارت ذخیره شد! کارت بعدی را در همین درس بنویسید', 'success');
+        } else {
+          closeModal('addCardModal');
+          showToast('کارت جدید اضافه شد', 'success');
+        }
+      }
+
+      function formatRemainingTime(card) {
+        if (card.isNew) return 'کارت جدید (خانه ۱)';
+        const diff = Number(card.nextReview) - Date.now();
+        if (diff <= 0) return 'آماده مرور';
+        const hours = Math.ceil(diff / (60 * 60 * 1000));
+        if (hours < 24) return `مرور بعدی: ${toPersianDigits(hours)} ساعت دیگر`;
+        const days = Math.ceil(diff / DAY_MS);
+        return `مرور بعدی: ${toPersianDigits(days)} روز دیگر`;
+      }
+
+      function renderCardList() {
+        const searchQuery = document.getElementById('searchCardsInput').value.trim().toLowerCase();
+        const pillsContainer = document.getElementById('boxFilterPills');
+        const listContainer = document.getElementById('cardsListContainer');
+        const chapterSelect = document.getElementById('listChapterFilterSelect');
+
+        const uniqueChapters = [...new Set(cards.map((c) => c.chapter || 'عمومی'))];
+        if (listFilterChapter !== 'all' && !uniqueChapters.includes(listFilterChapter)) {
+          listFilterChapter = 'all';
+        }
+        chapterSelect.innerHTML = '<option value="all">همه فصل‌ها</option>';
+        uniqueChapters.forEach((ch) => {
+          const opt = document.createElement('option');
+          opt.value = ch;
+          opt.textContent = ch;
+          chapterSelect.appendChild(opt);
+        });
+        chapterSelect.value = listFilterChapter;
+
+        const filters = [
+          { key: 'all', label: 'همه' },
+          { key: 'starred', label: '⭐ ستاره‌دار' },
+          { key: '1', label: 'خانه ۱' },
+          { key: '2', label: 'خانه ۲' },
+          { key: '3', label: 'خانه ۳' },
+          { key: '4', label: 'خانه ۴' },
+          { key: '5', label: 'خانه ۵' }
+        ];
+
+        pillsContainer.innerHTML = '';
+        filters.forEach((f) => {
+          const isActive = listFilterBox === f.key;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = f.label;
+          btn.className = isActive
+            ? 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shrink-0 transition'
+            : 'px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 transition';
+          btn.addEventListener('click', () => {
+            listFilterBox = f.key;
+            renderCardList();
+          });
+          pillsContainer.appendChild(btn);
+        });
+
+        const filtered = cards.filter((c) => {
+          const matchesBox =
+            listFilterBox === 'all' ||
+            (listFilterBox === 'starred' ? (c.starred || Number(c.lapses) >= 3) : String(c.box) === listFilterBox);
+          const matchesChapter = listFilterChapter === 'all' || (c.chapter || 'عمومی') === listFilterChapter;
+          const matchesSearch =
+            !searchQuery ||
+            c.front.toLowerCase().includes(searchQuery) ||
+            c.back.toLowerCase().includes(searchQuery) ||
+            (c.chapter && c.chapter.toLowerCase().includes(searchQuery)) ||
+            (c.lesson && c.lesson.toLowerCase().includes(searchQuery));
+          return matchesBox && matchesChapter && matchesSearch;
+        });
+
+        document.getElementById('listModalCount').textContent = `${toPersianDigits(filtered.length)} از ${toPersianDigits(cards.length)} کارت`;
+        listContainer.innerHTML = '';
+
+        if (filtered.length === 0) {
+          listContainer.innerHTML = `
+            <div class="py-12 text-center text-xs sm:text-sm text-slate-400 dark:text-slate-500">
+              کارتی با این مشخصات یافت نشد.
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach((card) => {
+          const item = document.createElement('div');
+          item.className = 'p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex items-start justify-between gap-2.5';
+
+          const isDue = card.isNew || Number(card.nextReview) <= Date.now();
+          const statusClass = isDue
+            ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+            : 'text-slate-400 dark:text-slate-500';
+          const starBadge = card.starred ? `<span class="text-xs" title="کارت ستاره‌دار">⭐</span>` : '';
+
+          item.innerHTML = `
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                ${starBadge}
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-100/80 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">خانه ${toPersianDigits(card.box)}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 truncate max-w-[130px]">${escapeHtml(card.chapter || 'عمومی')}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded-md bg-purple-100/70 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 truncate max-w-[130px]">${escapeHtml(card.lesson || 'درس عمومی')}</span>
+                <span class="text-[11px] ${statusClass}">${formatRemainingTime(card)}</span>
+              </div>
+              <div dir="${detectTextDirection(card.front)}" class="text-sm font-bold text-slate-900 dark:text-white mb-1 break-words">${escapeHtml(card.front)}</div>
+              <div dir="${detectTextDirection(card.back)}" class="text-xs text-slate-600 dark:text-slate-300 break-words leading-relaxed">${escapeHtml(card.back)}</div>
+            </div>
+            <div class="flex flex-col gap-1 shrink-0">
+              <button type="button" data-edit-id="${card.id}" title="ویرایش کارت"
+                class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button type="button" data-delete-id="${card.id}" title="حذف کارت"
+                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          `;
+
+          item.querySelector('[data-edit-id]').addEventListener('click', () => {
+            openQuickEditModal(card.id);
+          });
+
+          item.querySelector('[data-delete-id]').addEventListener('click', () => {
+            cards = cards.filter((c) => c.id !== card.id);
+            saveCards();
+            renderDashboard();
+            renderCardList();
+            showToast('کارت حذف شد', 'info');
+          });
+
+          listContainer.appendChild(item);
+        });
+      }
+
+      // ==================== کارنامه، درصد یادگیری، چالش‌برانگیزها و پایان ماه ====================
+
+      function switchReportTab(tabName) {
+        document.getElementById('chaptersReportTabContent').classList.toggle('hidden', tabName !== 'chapters');
+        document.getElementById('challengingReportTabContent').classList.toggle('hidden', tabName !== 'challenging');
+        document.getElementById('monthlyReportTabContent').classList.toggle('hidden', tabName !== 'monthly');
+
+        const activeClasses = 'py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs transition';
+        const inactiveClasses = 'py-2 px-2 rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 dark:text-slate-400 transition';
+
+        document.getElementById('tabChaptersBtn').className = tabName === 'chapters' ? activeClasses : inactiveClasses;
+        document.getElementById('tabChallengingBtn').className = tabName === 'challenging' ? activeClasses : inactiveClasses;
+        document.getElementById('tabMonthlyBtn').className = tabName === 'monthly' ? activeClasses : inactiveClasses;
+      }
+
+      function renderReportsModal() {
+        const monthInfo = getCurrentPersianMonthInfo();
+        document.getElementById('currentPersianMonthLabel').textContent = `دوره فعلی: ${monthInfo.label}`;
+
+        const stats = getChapterHierarchyStats();
+
+        // --- تب ۱: درصد یادگیری فصل‌ها ---
+        const chaptersContainer = document.getElementById('chaptersReportTabContent');
+        chaptersContainer.innerHTML = '';
+
+        if (stats.length === 0) {
+          chaptersContainer.innerHTML = `
+            <div class="py-12 text-center text-xs sm:text-sm text-slate-400 dark:text-slate-500">
+              هنوز هیچ فصل یا درسی ثبت نشده است.
+            </div>
+          `;
+        } else {
+          stats.forEach((ch) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-col gap-3';
+
+            const lessonsHtml = ch.lessons
+              .map(
+                (ls) => `
+                <div class="flex items-center justify-between gap-2 text-xs py-1.5 px-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200/50 dark:border-slate-800">
+                  <div class="truncate font-medium text-slate-700 dark:text-slate-200">${escapeHtml(ls.lesson)}</div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-[11px] text-slate-400">${toPersianDigits(ls.total)} کارت</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">${toPersianDigits(ls.masteryPercent)}٪</span>
+                  </div>
+                </div>
+              `
+              )
+              .join('');
+
+            cardEl.innerHTML = `
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(ch.chapter)}</h4>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    ${toPersianDigits(ch.total)} کارت • ${toPersianDigits(ch.mastered)} مسلط (خانه ۵) • ${toPersianDigits(ch.challengingCards.length)} چالش‌برانگیز
+                  </p>
+                </div>
+                <div class="text-left">
+                  <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">${toPersianDigits(ch.masteryPercent)}٪</span>
+                </div>
+              </div>
+
+              <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ${ch.masteryPercent}%"></div>
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-0.5">
+                ${lessonsHtml}
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-review-chapter="${escapeHtml(ch.chapter)}"
+                  class="py-2 px-2.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 transition">
+                  مرور امروز (${toPersianDigits(ch.due)})
+                </button>
+                <button type="button" data-cram-chapter="${escapeHtml(ch.chapter)}"
+                  class="py-2 px-2.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/70 border border-amber-200/70 dark:border-amber-800/50 text-[11px] font-semibold text-amber-800 dark:text-amber-300 transition">
+                  ⚡ دوره شب امتحان
+                </button>
+              </div>
+            `;
+
+            cardEl.querySelector('[data-review-chapter]').addEventListener('click', () => {
+              selectedDashboardChapter = ch.chapter;
+              selectedDashboardLesson = 'all';
+              closeModal('reportsModal');
+              renderDashboard();
+              if (ch.due > 0) {
+                startReviewSession('normal');
+              } else {
+                showToast('فصل انتخاب شد؛ تمام کارت‌های امروز این فصل مرور شده‌اند', 'info');
+              }
+            });
+
+            cardEl.querySelector('[data-cram-chapter]').addEventListener('click', () => {
+              selectedDashboardChapter = ch.chapter;
+              selectedDashboardLesson = 'all';
+              closeModal('reportsModal');
+              renderDashboard();
+              startReviewSession('cram');
+            });
+
+            chaptersContainer.appendChild(cardEl);
+          });
+        }
+
+        // --- تب ۲: کارت‌های چالش‌برانگیز (ستاره‌دار) به تفکیک فصل ---
+        const challengingContainer = document.getElementById('challengingReportTabContent');
+        challengingContainer.innerHTML = '';
+
+        const chaptersWithChallenging = stats.filter((ch) => ch.challengingCards.length > 0);
+        if (chaptersWithChallenging.length === 0) {
+          challengingContainer.innerHTML = `
+            <div class="py-12 text-center text-xs sm:text-sm text-slate-400 dark:text-slate-500 leading-relaxed">
+              هیچ کارت چالش‌برانگیز یا ستاره‌داری وجود ندارد.<br/>کارت‌هایی که ۳ بار به خانه ۱ برگردند یا دستی ستاره‌دار شوند اینجا نمایش داده می‌شوند.
+            </div>
+          `;
+        } else {
+          chaptersWithChallenging.forEach((ch) => {
+            const groupEl = document.createElement('div');
+            groupEl.className = 'p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-col gap-2.5';
+
+            const cardsHtml = ch.challengingCards
+              .map(
+                (c) => `
+                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800 flex items-start justify-between gap-2">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 mb-1">
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold">
+                        ${Number(c.lapses) > 0 ? `${toPersianDigits(c.lapses)} بار تکرار` : 'ستاره دستی'}
+                      </span>
+                      <span class="text-[10px] text-slate-400 truncate">${escapeHtml(c.lesson || '')}</span>
+                    </div>
+                    <div dir="${detectTextDirection(c.front)}" class="text-xs font-bold text-slate-900 dark:text-white truncate">${escapeHtml(c.front)}</div>
+                    <div dir="${detectTextDirection(c.back)}" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${escapeHtml(c.back)}</div>
+                  </div>
+                  <button type="button" data-unstar-id="${c.id}" title="حذف از چالش‌برانگیزها"
+                    class="p-1.5 rounded-lg text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
+                    ⭐
+                  </button>
+                </div>
+              `
+              )
+              .join('');
+
+            groupEl.innerHTML = `
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(ch.chapter)}</h4>
+                <button type="button" data-review-starred-ch="${escapeHtml(ch.chapter)}"
+                  class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                  مرور ${toPersianDigits(ch.challengingCards.length)} کارت ⭐
+                </button>
+              </div>
+              <div class="flex flex-col gap-1.5">${cardsHtml}</div>
+            `;
+
+            groupEl.querySelector('[data-review-starred-ch]').addEventListener('click', () => {
+              selectedDashboardChapter = ch.chapter;
+              selectedDashboardLesson = 'all';
+              closeModal('reportsModal');
+              renderDashboard();
+              startReviewSession('starred');
+            });
+
+            groupEl.querySelectorAll('[data-unstar-id]').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                const cid = btn.getAttribute('data-unstar-id');
+                const found = cards.find((x) => x.id === cid);
+                if (found) {
+                  found.starred = false;
+                  saveCards();
+                  renderDashboard();
+                  renderReportsModal();
+                  showToast('کارت از لیست چالش‌برانگیزها خارج شد', 'info');
+                }
+              });
+            });
+
+            challengingContainer.appendChild(groupEl);
+          });
+        }
+
+        // --- تب ۳: تاریخچه کارنامه‌های پایان ماه ---
+        const snapshotsContainer = document.getElementById('monthlySnapshotsList');
+        snapshotsContainer.innerHTML = '';
+
+        if (monthlyReports.length === 0) {
+          snapshotsContainer.innerHTML = `
+            <div class="py-8 text-center text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+              هنوز کارنامه پایان ماهی ثبت نشده است.<br/>در پایان هر ماه دکمه «ثبت کارنامه ماه» را بزنید تا روند پیشرفت شما ذخیره شود.
+            </div>
+          `;
+        } else {
+          monthlyReports.forEach((rep, idx) => {
+            const prevRep = monthlyReports[idx + 1];
+            const diff = prevRep ? rep.overallMastery - prevRep.overallMastery : null;
+            const diffBadge =
+              diff !== null
+                ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                    diff >= 0
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                  }">${diff >= 0 ? '+' : ''}${toPersianDigits(diff)}٪ نسبت به ماه قبل</span>`
+                : '';
+
+            const chaptersRows = (rep.chapters || [])
+              .map(
+                (c) => `
+                <div class="flex items-center justify-between text-xs py-1 border-b border-slate-200/50 dark:border-slate-700/50 last:border-none">
+                  <span class="text-slate-700 dark:text-slate-200 truncate">${escapeHtml(c.chapter)}</span>
+                  <span class="font-bold text-slate-900 dark:text-white shrink-0">${toPersianDigits(c.masteryPercent)}٪ (${toPersianDigits(c.total)} کارت)</span>
+                </div>
+              `
+              )
+              .join('');
+
+            const snapEl = document.createElement('div');
+            snapEl.className = 'p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex flex-col gap-2.5';
+            snapEl.innerHTML = `
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-sm font-bold text-slate-900 dark:text-white">کارنامه ${escapeHtml(rep.monthLabel)}</div>
+                  <div class="text-[11px] text-slate-400">تاریخ ثبت: ${toPersianDigits(rep.savedDate)}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${diffBadge}
+                  <span class="text-base font-extrabold text-indigo-600 dark:text-indigo-400">${toPersianDigits(rep.overallMastery)}٪</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 pt-1">
+                ${chaptersRows}
+              </div>
+            `;
+            snapshotsContainer.appendChild(snapEl);
+          });
+        }
+      }
+
+      function saveCurrentMonthlySnapshot() {
+        if (cards.length === 0) {
+          showToast('کارتی برای ثبت کارنامه وجود ندارد', 'info');
+          return;
+        }
+
+        const monthInfo = getCurrentPersianMonthInfo();
+        const stats = getChapterHierarchyStats();
+        const overallMastery = calculateMasteryPercentage(cards);
+
+        const snapshot = {
+          monthKey: monthInfo.key,
+          monthLabel: monthInfo.label,
+          savedDate: getTodayDateString(),
+          overallMastery,
+          totalCards: cards.length,
+          chapters: stats.map((s) => ({
+            chapter: s.chapter,
+            total: s.total,
+            mastered: s.mastered,
+            masteryPercent: s.masteryPercent
+          }))
+        };
+
+        const existingIndex = monthlyReports.findIndex((r) => r.monthKey === monthInfo.key);
+        if (existingIndex !== -1) {
+          monthlyReports[existingIndex] = snapshot;
+        } else {
+          monthlyReports.unshift(snapshot);
+        }
+
+        saveMonthlyReports();
+        renderReportsModal();
+        showToast(`کارنامه پایان ماه ${monthInfo.label} ثبت شد`, 'success');
+      }
+
+      function copyMonthlyReportText() {
+        const monthInfo = getCurrentPersianMonthInfo();
+        const stats = getChapterHierarchyStats();
+        const overall = calculateMasteryPercentage(cards);
+
+        let lines = [`📊 گزارش یادگیری لایتنر — ${monthInfo.label}`, `میانگین تسلط کل: ${toPersianDigits(overall)}٪`, ''];
+        stats.forEach((ch) => {
+          lines.push(`• ${ch.chapter}: ${toPersianDigits(ch.masteryPercent)}٪ (${toPersianDigits(ch.mastered)} از ${toPersianDigits(ch.total)} کارت مسلط)`);
+          ch.lessons.forEach((ls) => {
+            lines.push(`   - ${ls.lesson}: ${toPersianDigits(ls.masteryPercent)}٪`);
+          });
+        });
+
+        const text = lines.join('\n');
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showToast('متن گزارش در کلیپ‌بورد کپی شد', 'success');
+        } catch (err) {
+          showToast('خطا در کپی کردن گزارش', 'error');
+        }
+        textarea.remove();
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      // ==================== تنظیمات، سقف روزانه و نوتیفیکیشن ====================
+
+      function updateSettingsUI() {
+        ensureTodayNewTracker();
+
+        const limitSelect = document.getElementById('dailyNewLimitSelect');
+        const limitHint = document.getElementById('dailyNewUsageHint');
+        const currentLimit = Number(settings.dailyNewLimit);
+        limitSelect.value = String(currentLimit);
+
+        const usedToday = Number(settings.dailyNewTracker.count) || 0;
+        if (currentLimit === 0) {
+          limitHint.textContent = `امروز ${toPersianDigits(usedToday)} کارت جدید مرور کرده‌اید (بدون سقف محدودیت).`;
+        } else {
+          const totalCap = currentLimit + (Number(settings.dailyNewTracker.extraBonus) || 0);
+          limitHint.textContent = `امروز ${toPersianDigits(usedToday)} از ${toPersianDigits(totalCap)} کارت جدید مجاز را مرور کرده‌اید.`;
+        }
+
+        const toggle = document.getElementById('reminderToggle');
+        const timeInput = document.getElementById('reminderTimeInput');
+        const hint = document.getElementById('notificationStatusHint');
+
+        toggle.checked = Boolean(settings.reminderEnabled);
+        timeInput.value = settings.reminderTime || '20:00';
+
+        if (!('Notification' in window)) {
+          hint.textContent = 'مرورگر یا محیط فعلی از نوتیفیکیشن سیستم پشتیبانی نمی‌کند.';
+        } else if (Notification.permission === 'denied') {
+          hint.textContent = 'دسترسی نوتیفیکیشن در تنظیمات مرورگر مسدود شده است.';
+        } else if (settings.reminderEnabled) {
+          hint.textContent = `یادآور فعال است. هر روز راس ساعت ${toPersianDigits(settings.reminderTime)} اطلاع‌رسانی می‌شود.`;
+        } else {
+          hint.textContent = 'با فعال‌سازی یادآور، مرورگر روزانه تعداد کارت‌های آماده مرور را یادآوری می‌کند.';
+        }
+      }
+
+      async function handleReminderToggle(e) {
+        const wantEnable = e.target.checked;
+
+        if (!wantEnable) {
+          settings.reminderEnabled = false;
+          saveSettings();
+          updateSettingsUI();
+          renderDashboard();
+          showToast('یادآور روزانه غیرفعال شد', 'info');
+          return;
+        }
+
+        if (!('Notification' in window)) {
+          e.target.checked = false;
+          showToast('این مرورگر از نوتیفیکیشن پشتیبانی نمی‌کند', 'error');
+          return;
+        }
+
+        try {
+          let permission = Notification.permission;
+          if (permission === 'default') {
+            permission = await Notification.requestPermission();
+          }
+
+          if (permission === 'granted') {
+            settings.reminderEnabled = true;
+            saveSettings();
+            updateSettingsUI();
+            renderDashboard();
+            showToast('یادآور روزانه با موفقیت فعال شد', 'success');
+          } else {
+            e.target.checked = false;
+            settings.reminderEnabled = false;
+            saveSettings();
+            updateSettingsUI();
+            showToast('اجازه ارسال نوتیفیکیشن داده نشد', 'error');
+          }
+        } catch (err) {
+          e.target.checked = false;
+          showToast('خطا در فعال‌سازی نوتیفیکیشن', 'error');
+        }
+      }
+
+      function sendBrowserNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(title, { body, dir: 'rtl', lang: 'fa' });
+            return true;
+          } catch (err) {
+            console.warn('خطا در نمایش نوتیفیکیشن:', err);
+          }
+        }
+        return false;
+      }
+
+      async function triggerTestNotification() {
+        const readyCount = getTodayStudyBreakdown(cards).totalReady;
+        const msg =
+          readyCount > 0
+            ? `یادآور مرور لایتنر — شما ${toPersianDigits(readyCount)} کارت آماده مرور دارید!`
+            : 'یادآور مرور لایتنر — نوتیفیکیشن به درستی کار می‌کند!';
+
+        if (!('Notification' in window)) {
+          showToast(msg, 'info');
+          return;
+        }
+
+        let permission = Notification.permission;
+        if (permission === 'default') {
+          permission = await Notification.requestPermission();
+          updateSettingsUI();
+        }
+
+        if (permission === 'granted') {
+          const sent = sendBrowserNotification('لایتنر مینیمال', msg);
+          if (sent) {
+            showToast('نوتیفیکیشن تستی ارسال شد', 'success');
+          } else {
+            showToast(msg, 'info');
+          }
+        } else {
+          showToast('دسترسی نوتیفیکیشن فعال نیست: ' + msg, 'info');
+        }
+      }
+
+      function checkScheduledReminder() {
+        if (!settings.reminderEnabled) return;
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const todayStr = getTodayDateString();
+        if (settings.lastNotifiedDate === todayStr) return;
+
+        const now = new Date();
+        const [targetHour, targetMinute] = (settings.reminderTime || '20:00').split(':').map(Number);
+
+        const isTimeReached =
+          now.getHours() > targetHour || (now.getHours() === targetHour && now.getMinutes() >= targetMinute);
+
+        if (isTimeReached) {
+          const readyCount = getTodayStudyBreakdown(cards).totalReady;
+          if (readyCount > 0) {
+            const bodyText = `یادآور مرور لایتنر — شما ${toPersianDigits(readyCount)} کارت آماده مرور دارید!`;
+            const sent = sendBrowserNotification('لایتنر مینیمال', bodyText);
+            if (sent) {
+              settings.lastNotifiedDate = todayStr;
+              saveSettings();
+            }
+          }
+        }
+      }
+
+      // ==================== اتصال رویدادها (Event Listeners) ====================
+
+      function bindEvents() {
+        document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+
+        // یادآور بکاپ‌گیری دوره‌ای (هر ۵۰ مرور)
+        document.getElementById('bannerDownloadBackupBtn').addEventListener('click', exportBackupJson);
+        document.getElementById('bannerSnoozeBackupBtn').addEventListener('click', () => {
+          settings.reviewsSinceLastBackup = 25; // یادآوری مجدد بعد از ۲۵ مرور بعدی
+          saveSettings();
+          renderDashboard();
+        });
+
+        // فیلتر فصل و درس در داشبورد
+        document.getElementById('dashboardChapterSelect').addEventListener('change', (e) => {
+          selectedDashboardChapter = e.target.value;
+          selectedDashboardLesson = 'all';
+          renderDashboard();
+        });
+        document.getElementById('dashboardLessonSelect').addEventListener('change', (e) => {
+          selectedDashboardLesson = e.target.value;
+          renderDashboard();
+        });
+
+        // باز کردن ۱۰ کارت جدید بیشتر در روز
+        document.getElementById('unlockMoreNewBtn').addEventListener('click', () => {
+          ensureTodayNewTracker();
+          settings.dailyNewTracker.extraBonus = (Number(settings.dailyNewTracker.extraBonus) || 0) + 10;
+          saveSettings();
+          renderDashboard();
+          showToast('۱۰ کارت جدید دیگر به برنامه امروز اضافه شد', 'success');
+        });
+
+        // بارگذاری کارت‌های نمونه
+        document.getElementById('loadSampleCardsBtn').addEventListener('click', () => {
+          cards = SAMPLE_CARDS.map((c) => normalizeCard({ ...c, id: generateId(), nextReview: Date.now() }));
+          saveCards();
+          renderDashboard();
+          showToast('کارت‌های نمونه بارگذاری شدند', 'success');
+        });
+
+        // دکمه‌های شروع مرور (عادی، شب امتحان، ستاره‌دارها) و بازگشت
+        document.getElementById('startReviewBtn').addEventListener('click', () => startReviewSession('normal'));
+        document.getElementById('cramModeBtn').addEventListener('click', () => startReviewSession('cram'));
+        document.getElementById('starredReviewBtn').addEventListener('click', () => startReviewSession('starred'));
+        document.getElementById('exitReviewBtn').addEventListener('click', () => {
+          if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+          switchView('dashboardView');
+          renderDashboard();
+        });
+        document.getElementById('backToDashboardBtn').addEventListener('click', () => {
+          switchView('dashboardView');
+          renderDashboard();
+        });
+
+        // تعامل با فلش‌کارت (چرخش + دکمه‌های ارزیابی)
+        document.getElementById('flashcardContainer').addEventListener('click', (e) => {
+          if (e.target.closest('button')) return;
+          flipCurrentCard();
+        });
+        document.getElementById('revealAnswerBtn').addEventListener('click', flipCurrentCard);
+        document.getElementById('knowItBtn').addEventListener('click', () => handleCardAnswer(true));
+        document.getElementById('dontKnowBtn').addEventListener('click', () => handleCardAnswer(false));
+
+        // دکمه‌های ابزار روی کارت: تلفظ صوتی، ستاره و ویرایش سریع
+        document.getElementById('ttsFrontBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = reviewSession.queue[reviewSession.currentIndex];
+          if (card) speakText(card.front, e.currentTarget);
+        });
+        document.getElementById('ttsBackBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = reviewSession.queue[reviewSession.currentIndex];
+          if (card) speakText(card.back, e.currentTarget);
+        });
+
+        document.getElementById('starFrontBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleCurrentCardStar();
+        });
+        document.getElementById('starBackBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleCurrentCardStar();
+        });
+
+        document.getElementById('editFrontBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = reviewSession.queue[reviewSession.currentIndex];
+          if (card) openQuickEditModal(card.id);
+        });
+        document.getElementById('editBackBtn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = reviewSession.queue[reviewSession.currentIndex];
+          if (card) openQuickEditModal(card.id);
+        });
+
+        // فرم ویرایش سریع کارت
+        document.getElementById('quickEditForm').addEventListener('submit', saveQuickEdit);
+        document.getElementById('deleteEditedCardBtn').addEventListener('click', () => {
+          const id = document.getElementById('editCardId').value;
+          openConfirmDialog('حذف فلش‌کارت', 'آیا از حذف دائمی این کارت مطمئن هستید؟', () => {
+            cards = cards.filter((c) => c.id !== id);
+            saveCards();
+            closeModal('quickEditModal');
+            renderDashboard();
+
+            if (!document.getElementById('reviewView').classList.contains('hidden')) {
+              reviewSession.queue = reviewSession.queue.filter((c) => c.id !== id);
+              renderCurrentReviewCard();
+            }
+            if (!document.getElementById('cardListModal').classList.contains('hidden')) {
+              renderCardList();
+            }
+            showToast('کارت حذف شد', 'info');
+          });
+        });
+
+        // میانبرهای کیبورد در صفحه مرور
+        document.addEventListener('keydown', (e) => {
+          if (document.getElementById('reviewView').classList.contains('hidden')) return;
+          if (!document.getElementById('quickEditModal').classList.contains('hidden')) return;
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+          if (e.code === 'Space') {
+            e.preventDefault();
+            flipCurrentCard();
+          } else if (reviewSession.isFlipped && (e.code === 'ArrowRight' || e.key === '1')) {
+            e.preventDefault();
+            handleCardAnswer(true);
+          } else if (reviewSession.isFlipped && (e.code === 'ArrowLeft' || e.key === '2')) {
+            e.preventDefault();
+            handleCardAnswer(false);
+          }
+        });
+
+        // ورود فایل درس
+        document.getElementById('importFileTriggerBtn').addEventListener('click', () => {
+          if (selectedDashboardChapter !== 'all') {
+            document.getElementById('importChapterInput').value = selectedDashboardChapter;
+          }
+          if (selectedDashboardLesson !== 'all') {
+            document.getElementById('importLessonInput').value = selectedDashboardLesson;
+          }
+          openModal('importModal');
+        });
+        document.getElementById('selectFileAndImportBtn').addEventListener('click', () => {
+          document.getElementById('fileInput').click();
+        });
+        document.getElementById('fileInput').addEventListener('change', (e) => handleFileUpload(e, false));
+
+        // مودال کارنامه، درصد یادگیری و چالش‌برانگیزها
+        document.getElementById('openReportsModalBtn').addEventListener('click', () => {
+          openModal('reportsModal');
+          switchReportTab('chapters');
+          renderReportsModal();
+        });
+        document.getElementById('tabChaptersBtn').addEventListener('click', () => switchReportTab('chapters'));
+        document.getElementById('tabChallengingBtn').addEventListener('click', () => switchReportTab('challenging'));
+        document.getElementById('tabMonthlyBtn').addEventListener('click', () => switchReportTab('monthly'));
+        document.getElementById('saveMonthlySnapshotBtn').addEventListener('click', saveCurrentMonthlySnapshot);
+        document.getElementById('exportMonthlyReportTextBtn').addEventListener('click', copyMonthlyReportText);
+
+        // مودال افزودن کارت دستی
+        document.getElementById('openAddModalBtn').addEventListener('click', () => {
+          if (selectedDashboardChapter !== 'all' && !document.getElementById('inputChapter').value) {
+            document.getElementById('inputChapter').value = selectedDashboardChapter;
+          }
+          openModal('addCardModal');
+          setTimeout(() => document.getElementById('inputFront').focus(), 100);
+        });
+        document.getElementById('addCardForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          addManualCard(false);
+        });
+        document.getElementById('saveAndNextBtn').addEventListener('click', () => addManualCard(true));
+
+        // مودال لیست کارت‌ها
+        document.getElementById('openListModalBtn').addEventListener('click', () => {
+          listFilterBox = 'all';
+          listFilterChapter = selectedDashboardChapter;
+          document.getElementById('searchCardsInput').value = '';
+          openModal('cardListModal');
+          renderCardList();
+        });
+        document.getElementById('listChapterFilterSelect').addEventListener('change', (e) => {
+          listFilterChapter = e.target.value;
+          renderCardList();
+        });
+        document.getElementById('searchCardsInput').addEventListener('input', renderCardList);
+        document.getElementById('exportJsonBtnList').addEventListener('click', exportBackupJson);
+        document.getElementById('clearAllCardsBtn').addEventListener('click', () => {
+          if (cards.length === 0) {
+            showToast('لیست کارت‌ها هم‌اکنون خالی است', 'info');
+            return;
+          }
+          openConfirmDialog(
+            'حذف همه کارت‌ها',
+            `آیا مطمئن هستید که می‌خواهید تمام ${toPersianDigits(cards.length)} کارت و پیشرفت آن‌ها را حذف کنید؟`,
+            () => {
+              cards = [];
+              saveCards();
+              renderDashboard();
+              renderCardList();
+              showToast('همه کارت‌ها حذف شدند', 'info');
+            }
+          );
+        });
+
+        // مودال تنظیمات، سقف روزانه، نوتیفیکیشن و بازیابی پشتیبان
+        const openSettings = () => {
+          updateSettingsUI();
+          openModal('settingsModal');
+        };
+        document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
+        document.getElementById('openSettingsCardBtn').addEventListener('click', openSettings);
+
+        document.getElementById('dailyNewLimitSelect').addEventListener('change', (e) => {
+          settings.dailyNewLimit = Number(e.target.value);
+          saveSettings();
+          updateSettingsUI();
+          renderDashboard();
+          showToast('سقف کارت جدید روزانه به‌روزرسانی شد', 'success');
+        });
+
+        document.getElementById('reminderToggle').addEventListener('change', handleReminderToggle);
+        document.getElementById('reminderTimeInput').addEventListener('change', (e) => {
+          settings.reminderTime = e.target.value || '20:00';
+          saveSettings();
+          updateSettingsUI();
+          showToast(`ساعت یادآوری روی ${toPersianDigits(settings.reminderTime)} تنظیم شد`, 'success');
+        });
+        document.getElementById('testNotificationBtn').addEventListener('click', triggerTestNotification);
+        document.getElementById('exportBackupBtn').addEventListener('click', exportBackupJson);
+        document.getElementById('restoreBackupTriggerBtn').addEventListener('click', () => {
+          document.getElementById('restoreBackupInput').click();
+        });
+        document.getElementById('restoreBackupInput').addEventListener('change', (e) => handleFileUpload(e, true));
+        document.getElementById('downloadOfflineAppBtn').addEventListener('click', downloadOfflineHtmlApp);
+
+        // بستن مودال‌ها
+        document.querySelectorAll('[data-close-modal]').forEach((btn) => {
+          btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close-modal')));
+        });
+
+        ['addCardModal', 'quickEditModal', 'cardListModal', 'settingsModal', 'importModal', 'reportsModal'].forEach((modalId) => {
+          const modalEl = document.getElementById(modalId);
+          modalEl.addEventListener('click', (e) => {
+            if (e.target === modalEl) closeModal(modalId);
+          });
+        });
+
+        document.getElementById('confirmCancelBtn').addEventListener('click', closeConfirmDialog);
+        document.getElementById('confirmAcceptBtn').addEventListener('click', () => {
+          if (typeof confirmCallback === 'function') confirmCallback();
+          closeConfirmDialog();
+        });
+      }
+
+      // ==================== راه‌اندازی اولیه برنامه ====================
+      document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        loadState();
+        bindEvents();
+        setupSwipeGestures();
+        renderDashboard();
+        checkScheduledReminder();
+        setInterval(checkScheduledReminder, 30000);
+      });
+    })();
+  </script>
+</body>
+</html>
